@@ -54,6 +54,8 @@ export function buildGrandstands(
   const parts: THREE.BufferGeometry[] = [];
   const lines: THREE.Vector3[][] = [];
   const toWorld = new THREE.Matrix4();
+  // LED on every step nose (high) or every other one (low).
+  const stride = quality === "high" ? 1 : 2;
   for (const g of specs) {
     // Local +x (the view direction) → world (cos facing, sin facing) in x-z.
     toWorld.makeRotationY(-g.facing).setPosition(g.x, 0, g.z);
@@ -65,7 +67,6 @@ export function buildGrandstands(
     geometry.applyMatrix4(toWorld);
     parts.push(geometry);
 
-    const stride = quality === "high" ? 1 : 2;
     const segments = Math.max(2, Math.ceil(g.length / 8));
     for (let i = 0; i < g.tiers; i += stride) {
       const line: THREE.Vector3[] = [];

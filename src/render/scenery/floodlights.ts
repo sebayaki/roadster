@@ -112,7 +112,6 @@ export function buildFloodlights(
   const lamps: THREE.Matrix4[] = [];
   const glows: GlowSpec[] = [];
   const cones: ConeSpec[] = [];
-  const white = new THREE.Color();
 
   for (const f of usedOn(specs, quality)) {
     const tint = new THREE.Color(f.tint ?? DEFAULT_TINT);
@@ -146,6 +145,7 @@ export function buildFloodlights(
     tmpObj.updateMatrix();
     heads.push(tmpObj.matrix.clone());
     const quat = tmpObj.quaternion;
+    const lampScale = new THREE.Vector3(lamp, lamp, 1);
     for (let c = 0; c < f.cols; c++) {
       for (let r = 0; r < f.rows; r++) {
         tmpVec
@@ -156,12 +156,7 @@ export function buildFloodlights(
           )
           .applyQuaternion(quat)
           .add(head);
-        const m = new THREE.Matrix4().compose(
-          tmpVec,
-          quat,
-          new THREE.Vector3(lamp, lamp, 1)
-        );
-        lamps.push(m);
+        lamps.push(new THREE.Matrix4().compose(tmpVec, quat, lampScale));
       }
     }
 
@@ -169,19 +164,22 @@ export function buildFloodlights(
     const aim = new THREE.Vector3(0, 0, 1).applyQuaternion(quat);
     const facing: Vec3Tuple = [aim.x, aim.y, aim.z];
     const front = aim.clone().multiplyScalar(0.6).add(head);
+    const position: Vec3Tuple = [front.x, front.y, front.z];
     const span = Math.max(headW, headH);
-    glows.push({
-      position: [front.x, front.y, front.z],
-      size: span * 3.2,
-      color: white.copy(tint).multiplyScalar(0.018).clone(),
-      facing,
-    });
-    glows.push({
-      position: [front.x, front.y, front.z],
-      size: span * 1.15,
-      color: white.copy(tint).multiplyScalar(0.55).clone(),
-      facing,
-    });
+    glows.push(
+      {
+        position,
+        size: span * 3.2,
+        color: tint.clone().multiplyScalar(0.018),
+        facing,
+      },
+      {
+        position,
+        size: span * 1.15,
+        color: tint.clone().multiplyScalar(0.55),
+        facing,
+      }
+    );
 
     const beam = f.beam ?? 0.03;
     if (beam > 0) {
