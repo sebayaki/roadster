@@ -94,12 +94,13 @@ const DEMOS: Record<string, Demo> = {
     pose(t, o) {
       resetPose(o);
       const bob = (s: number) => 0.12 * Math.sin((s - 1.2) * 1.6);
+      const sway = (s: number) => 0.2 * Math.sin((s - 1.2) * 0.7);
       if (t < 1.2) {
         o.y = lerp(CAR.comHeight, HOVER_Y, smoothstep(0, 1.2, t));
         setJets(o, 1, 1, 1, 1);
       } else if (t < 9.4) {
         o.y = HOVER_Y + bob(t);
-        o.x = 0.2 * Math.sin((t - 1.2) * 0.7);
+        o.x = sway(t);
         setJets(o, 1, 1, 1, 1);
         if (t >= 6 && t < 7.6) {
           // A full kickflip-style roll; the left pair adds the roll torque.
@@ -110,11 +111,11 @@ const DEMOS: Record<string, Demo> = {
         }
       } else if (t < 11) {
         const u = smoothstep(9.4, 11, t);
-        o.x = 0.2 * Math.sin((9.4 - 1.2) * 0.7);
+        o.x = sway(9.4);
         o.y = lerp(HOVER_Y + bob(9.4), CAR.comHeight, u);
         setJets(o, 1, 1, 1, 1);
       } else {
-        o.x = 0.2 * Math.sin((9.4 - 1.2) * 0.7);
+        o.x = sway(9.4);
         o.mode = "grounded";
         if (t > 11.6 && t < 13) o.throttle = 1;
       }
