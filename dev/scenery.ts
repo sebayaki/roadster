@@ -12,7 +12,7 @@ import { CAR } from "@/core/car-spec";
 import type { LevelId, Vec3 } from "@/core/types";
 import { getLevel } from "@/levels";
 import { buildScenery, type Scenery } from "@/render/scenery";
-import { venueLayout, type Backdrop } from "@/render/scenery/layout";
+import { placed, venueLayout, type Backdrop } from "@/render/scenery/layout";
 
 const params = new URLSearchParams(location.search);
 const levelId: LevelId =
@@ -33,15 +33,11 @@ function at(
   target: [number, number, number],
   fov: number
 ): View {
-  const c = Math.cos(frame.yaw);
-  const s = Math.sin(frame.yaw);
-  const [ox, oy, oz] = frame.position;
-  const move = (p: [number, number, number]): [number, number, number] => [
-    ox + p[0] * c + p[2] * s,
-    oy + p[1],
-    oz - p[0] * s + p[2] * c,
-  ];
-  return { position: move(position), target: move(target), fov };
+  return {
+    position: placed(position, frame),
+    target: placed(target, frame),
+    fov,
+  };
 }
 
 const views: Record<string, View> = {
@@ -80,7 +76,7 @@ if (customPos && customLook) {
   };
 }
 
-/** A white car-sized box; `pose` puts its tire plane on a surface point. */
+/** A white car-sized box (onProfile rests it on the track). */
 function placeholder(): THREE.Mesh {
   const box = new THREE.Mesh(
     new THREE.BoxGeometry(CAR.length, CAR.height, CAR.width),

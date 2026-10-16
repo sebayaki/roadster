@@ -86,8 +86,8 @@ const fixture = (
   ...extra,
 });
 
-/** World position of a point given in the Curl's own frame, moved to a backdrop placement. */
-function placed(p: Vec3Tuple, b: Backdrop): Vec3Tuple {
+/** World position of a point given in a structure's own frame, moved to a backdrop placement. */
+export function placed(p: Vec3Tuple, b: Backdrop): [number, number, number] {
   const c = Math.cos(b.yaw);
   const s = Math.sin(b.yaw);
   return [
