@@ -178,6 +178,11 @@ interface SideShot {
   yaw: number;
 }
 
+/** Angle (rad) between the view axis and screen height `ndc` at the base FOV. */
+function ndcAngle(ndc: number): number {
+  return Math.atan(ndc * TAN_HALF_FOV);
+}
+
 /** Angle subtended between the ground and height `top` seen from height `eye` at distance `d`. */
 function angularSpan(top: number, eye: number, d: number): number {
   return Math.atan((top - eye) / d) + Math.atan(eye / d);
@@ -193,9 +198,7 @@ const sideFit = { distance: 0, centerX: 0 };
  */
 function fitSide(shot: SideShot, aspect: number): void {
   const eye = shot.camHeight;
-  const allowed =
-    Math.atan(shot.topNdc * TAN_HALF_FOV) +
-    Math.atan(-shot.groundNdc * TAN_HALF_FOV);
+  const allowed = ndcAngle(shot.topNdc) + ndcAngle(-shot.groundNdc);
   let lo = shot.minDistance;
   let hi = shot.maxDistance;
   if (angularSpan(shot.topY, eye, lo) > allowed) {
@@ -395,15 +398,8 @@ export class CameraRig {
     if (this.blendT < 1) {
       this.blendT = Math.min(1, this.blendT + dt / this.blendDuration);
       const from = this.blendPose;
-      const p = car.position;
-      from.pos.copy(this.blendFrom.pos);
-      from.pos.x += p.x;
-      from.pos.y += p.y;
-      from.pos.z += p.z;
-      from.target.copy(this.blendFrom.target);
-      from.target.x += p.x;
-      from.target.y += p.y;
-      from.target.z += p.z;
+      from.pos.copy(this.blendFrom.pos).add(car.position);
+      from.target.copy(this.blendFrom.target).add(car.position);
       from.fov = this.blendFrom.fov;
       lerpPose(out, from, out, smootherstep(this.blendT));
     }
@@ -621,8 +617,7 @@ export class CameraRig {
       this.sideCenterX = damp(this.sideCenterX, sideFit.centerX, 4, dt);
     }
     const d = this.sideDistance;
-    const tilt =
-      Math.atan2(-s.camHeight, d) + Math.atan(-s.groundNdc * TAN_HALF_FOV);
+    const tilt = Math.atan2(-s.camHeight, d) + ndcAngle(-s.groundNdc);
     out.target.set(this.sideCenterX, s.camHeight + d * Math.tan(tilt), 0);
     out.pos.set(
       this.sideCenterX + d * Math.sin(s.yaw),
@@ -700,7 +695,7 @@ export class CameraRig {
     const c = this.orbitCenter;
     if (!this.orbitReady || dt <= 0) {
       this.orbitReady = true;
-      c.set(p.x, p.y, p.z);
+      c.copy(p);
       this.orbitAzimuth = Math.atan2(
         this.current.pos.z - p.z,
         this.current.pos.x - p.x
@@ -775,7 +770,7 @@ export class CameraRig {
 
   private apply(pose: Pose, car: CarSnapshot, shake: boolean): void {
     copyPose(this.current, pose);
-    this.lastCarPos.set(car.position.x, car.position.y, car.position.z);
+    this.lastCarPos.copy(car.position);
     const cam = this.camera;
     cam.position.copy(pose.pos);
     cam.lookAt(pose.target);
