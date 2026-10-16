@@ -135,6 +135,14 @@ function halfOutline(s: Slice, n: Counts, back = BACK, withBack = true): P2[] {
 /** The same outline reversed: from the front centerline outward and back along the side. */
 const frontFirst = (s: Slice, n: Counts): P2[] => halfOutline(s, n).reverse();
 
+/** Grid of stacked slices for `grid`: pts[i][j] is outline point i of slice j, at its height. */
+function stack(slices: Slice[], outline: (s: Slice) => P2[]): P3[][] {
+  const cols = slices.map(outline);
+  return cols[0].map((_, i) =>
+    slices.map((s, j): P3 => [cols[j][i][0], s.y, cols[j][i][1]])
+  );
+}
+
 /** Front surface x at lateral offset |z| for a slice. */
 function frontX(s: Slice, z: number): number {
   const rf = frontRadius(s, BACK);
@@ -156,13 +164,9 @@ export function buildSemi(
 
   // Cab skin.
   const cab = CAB.map(clampW);
-  const cols = cab.map((s) => halfOutline(s, n));
   const winIndex = n.back + n.backArc + n.sideA;
-  const pts: P3[][] = cols[0].map((_, i) =>
-    cab.map((s, j): P3 => [cols[j][i][0], s.y, cols[j][i][1]])
-  );
   grid(b, {
-    pts,
+    pts: stack(cab, (s) => halfOutline(s, n)),
     slot(i, j) {
       const glass =
         cab[j].y >= GLASS_BOTTOM - 1e-6 && cab[j + 1].y <= GLASS_TOP + 1e-6;
@@ -195,13 +199,10 @@ export function buildSemi(
 
   // Bumper / lower fascia: black bottom band, white above.
   const nb: Counts = { ...n, sideB: 2 };
-  const bumper = BUMPER.map(clampW);
-  const bcols = bumper.map((s) => halfOutline(s, nb, BUMPER_BACK, false));
-  const bpts: P3[][] = bcols[0].map((_, i) =>
-    bumper.map((s, j): P3 => [bcols[j][i][0], s.y, bcols[j][i][1]])
-  );
   grid(b, {
-    pts: bpts,
+    pts: stack(BUMPER.map(clampW), (s) =>
+      halfOutline(s, nb, BUMPER_BACK, false)
+    ),
     slot: (_, j) => (j === 0 ? SLOT.trim : SLOT.paint),
     capJ0: SLOT.trim,
   });
