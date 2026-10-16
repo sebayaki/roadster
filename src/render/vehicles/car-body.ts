@@ -99,6 +99,7 @@ export function carBody(
     ax + R + ARCH_EDGE,
   ]);
   const creaseXs = [d.rearGlass, d.cowl, ...archEdges];
+  // Exact stations: both ends, every material boundary, the roof keys and the hard edges.
   const must = [
     -L,
     L,
