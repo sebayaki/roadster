@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { TAU } from "@/core/math";
-import { createParticleMaterial, type ParticleKind } from "./particle-material";
-import type { ParticleUniforms } from "./particle-material";
+import {
+  createParticleMaterial,
+  type ParticleKind,
+  type ParticleUniforms,
+} from "./particle-material";
 import type { Rng } from "./rng";
 
 /** How a particle reacts to the ground plane y = 0. */
@@ -171,7 +174,7 @@ export class ParticleSystem {
   /** Live particle count. */
   count = 0;
 
-  private readonly kind: ParticleKind;
+  private readonly glow: boolean;
   private readonly sorted: boolean;
   private readonly rng: Rng;
   private readonly state: Float32Array;
@@ -193,7 +196,7 @@ export class ParticleSystem {
   >();
 
   constructor(opts: ParticleSystemOptions) {
-    this.kind = opts.kind;
+    this.glow = opts.kind === "glow";
     this.capacity = opts.capacity;
     this.sorted = opts.sorted;
     this.rng = opts.rng;
@@ -222,13 +225,10 @@ export class ParticleSystem {
     };
     this.posSize = attribute(4);
     this.color = attribute(4);
-    this.extra = attribute(this.kind === "glow" ? 3 : 2);
+    this.extra = attribute(this.glow ? 3 : 2);
     geometry.setAttribute("iPosSize", this.posSize);
     geometry.setAttribute("iColor", this.color);
-    geometry.setAttribute(
-      this.kind === "glow" ? "iStreak" : "iRot",
-      this.extra
-    );
+    geometry.setAttribute(this.glow ? "iStreak" : "iRot", this.extra);
     geometry.instanceCount = 0;
     this.geometry = geometry;
 
@@ -385,7 +385,7 @@ export class ParticleSystem {
     const ps = this.posSize.array as Float32Array;
     const col = this.color.array as Float32Array;
     const ex = this.extra.array as Float32Array;
-    const glow = this.kind === "glow";
+    const glow = this.glow;
     for (let j = 0; j < n; j++) {
       const o = (order ? order[j] : j) * STRIDE;
       const life = s[o + LIFE];
