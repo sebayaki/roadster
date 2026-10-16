@@ -100,7 +100,6 @@ const VERTEX = /* glsl */ `
 
 const CORE_FRAGMENT = /* glsl */ `
   uniform vec3 uColor;
-  varying float vAcross;
   varying float vIntensity;
   #include <fog_pars_fragment>
   void main() {
