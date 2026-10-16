@@ -80,7 +80,7 @@ export class NumberText {
   private readonly scale: number;
 
   constructor(
-    readonly el: HTMLElement,
+    private readonly el: HTMLElement,
     private readonly digits = 0
   ) {
     this.scale = 10 ** digits;
@@ -116,10 +116,6 @@ export class TransformSlot {
     this.last = q;
     this.el.style.transform = this.render(q * this.step);
   }
-
-  invalidate(): void {
-    this.last = Number.NaN;
-  }
 }
 
 /** A class toggle that touches the DOM only when the state flips. */
@@ -135,9 +131,5 @@ export class ClassFlag {
     if (on === this.state) return;
     this.state = on;
     this.el.classList.toggle(this.className, on);
-  }
-
-  get value(): boolean {
-    return this.state === true;
   }
 }

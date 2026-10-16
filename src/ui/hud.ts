@@ -169,7 +169,6 @@ export class Hud {
     this.pause.hide();
     this.menu.hide();
     this.run.hide();
-    this.run.setBest(this.best[opts.level.id]);
     const stuntNumber = Math.max(0, LEVEL_ORDER.indexOf(opts.level.id)) + 1;
     this.result.show(opts, this.scheme, this.run.attitude, stuntNumber);
   }

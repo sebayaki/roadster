@@ -14,7 +14,7 @@ export interface CheatRow {
 }
 
 /** True when a gamepad is connected (browsers expose it after its first button press). */
-export function hasGamepad(): boolean {
+function hasGamepad(): boolean {
   try {
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const pad of pads) if (pad?.connected) return true;

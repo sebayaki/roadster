@@ -86,9 +86,17 @@ export class RunView {
   private readonly name = h("div", { class: "run-name" });
   private readonly venue = h("div", { class: "run-venue" });
   private readonly bestValue = h("span", { class: "run-best-val" }, "—");
-  readonly muteButton: HTMLButtonElement;
   private readonly muteIcon = icon(ICONS.soundOn);
-  readonly pauseButton: HTMLButtonElement;
+  private readonly muteButton = h(
+    "button",
+    {
+      type: "button",
+      class: "hud-icon-btn run-mute",
+      "aria-label": "Mute",
+      "aria-pressed": "false",
+    },
+    this.muteIcon
+  );
   private readonly howTo = h("ol", { class: "run-howto hud-glass" });
   private readonly coach = h("div", { class: "run-coach" });
   private readonly hintEl = h("div", { class: "run-hint", role: "status" });
@@ -133,17 +141,7 @@ export class RunView {
   private hintUntil = 0;
 
   constructor() {
-    this.muteButton = h(
-      "button",
-      {
-        type: "button",
-        class: "hud-icon-btn run-mute",
-        "aria-label": "Mute",
-        "aria-pressed": "false",
-      },
-      this.muteIcon
-    );
-    this.pauseButton = h(
+    const pauseButton = h(
       "button",
       {
         type: "button",
@@ -153,7 +151,7 @@ export class RunView {
       icon(ICONS.pause)
     );
     this.muteButton.addEventListener("click", () => dispatchAction("mute"));
-    this.pauseButton.addEventListener("click", () => dispatchAction("pause"));
+    pauseButton.addEventListener("click", () => dispatchAction("pause"));
 
     // Speedometer: digits + unit, bar with the recommended band and a live marker.
     const speedDigits = h("span", { class: "speed-val" }, "0");
@@ -339,7 +337,7 @@ export class RunView {
             this.bestValue
           ),
           this.muteButton,
-          this.pauseButton
+          pauseButton
         )
       ),
       this.howTo,
@@ -352,10 +350,6 @@ export class RunView {
       if (e.target instanceof Element && e.target.closest("button"))
         e.preventDefault();
     });
-  }
-
-  get visible(): boolean {
-    return !this.el.hidden;
   }
 
   /** Reset for a new run of `level`. */
@@ -373,7 +367,7 @@ export class RunView {
     this.el.classList.toggle("is-touch", isTouch);
     this.name.textContent = level.title;
     this.venue.textContent = level.venue;
-    this.setBest(best);
+    this.bestValue.textContent = formatBest(best);
 
     this.speedScale = level.speedHint[1] * SPEED_BAR_SCALE;
     this.band.style.left = `${(level.speedHint[0] / this.speedScale) * 100}%`;
@@ -422,10 +416,6 @@ export class RunView {
 
   hide(): void {
     this.el.hidden = true;
-  }
-
-  setBest(best: number | undefined): void {
-    this.bestValue.textContent = formatBest(best);
   }
 
   setMuted(muted: boolean): void {
