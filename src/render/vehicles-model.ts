@@ -20,7 +20,7 @@ import { buildStage } from "./vehicles/stage";
 
 /**
  * Adds one vehicle's triangles to `b`, per material slot, at its nominal size
- * (VEHICLE_DIMS) with every half-width clamped to `env`.
+ * (VEHICLE_DIMS), with the body's half-widths clamped to `env`.
  */
 type Builder = (b: MeshBuilder, env: Envelope, quality: Quality) => void;
 
