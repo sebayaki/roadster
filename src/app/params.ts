@@ -2,7 +2,11 @@ import type { LevelId } from "@/core/types";
 import { LEVEL_ORDER } from "@/levels";
 import type { AutopilotStyle } from "@/physics/autopilot";
 
-/** URL switches (`?quality=` is read by the renderer's detectQuality, `?touch=` by Input). */
+/**
+ * URL switches read by the App. Two more are read where they apply:
+ * `?quality=low|high` forces a render tier (the renderer's detectQuality) and
+ * `?touch=1|0` forces the on-screen touch controls and touch HUD on or off (Input).
+ */
 export interface AppParams {
   /** `?level=backflip|kickflip`: skip the menu and start that run. */
   level: LevelId | null;
