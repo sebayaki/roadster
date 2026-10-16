@@ -11,7 +11,7 @@
  * The model's draw calls and triangles are logged on load.
  */
 import * as THREE from "three";
-import { meshStats, runHarness, type View } from "./harness";
+import { camParam, meshStats, runHarness, type View } from "./harness";
 import { CAR } from "@/core/car-spec";
 import { GLOW } from "@/render/palette";
 import {
@@ -51,14 +51,8 @@ const views: Record<string, View> = {
   chase: { position: [-10, 3.2, -1.2], target: [8, 1.0, 0], fov: 55 },
 };
 
-const cam = (params.get("cam") ?? "").split(",").map(Number);
-if (cam.length === 7 && cam.every(Number.isFinite)) {
-  views.custom = {
-    position: [cam[0], cam[1], cam[2]],
-    target: [cam[3], cam[4], cam[5]],
-    fov: cam[6],
-  };
-}
+const cam = camParam(params);
+if (cam) views.custom = cam;
 
 const state: RoadsterVisualState = {
   wheelSpin: 0,
