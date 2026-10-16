@@ -128,8 +128,6 @@ export class CarPhysics {
   private suspRate = 0;
   private tiltPitch = 0;
   private tiltRoll = 0;
-  private throttleIn = 0;
-  private brakeIn = 0;
   private wreckPitch = 0;
   private wreckRoll = 0;
 
@@ -203,11 +201,9 @@ export class CarPhysics {
     this.suspRate = 0;
     this.tiltPitch = 0;
     this.tiltRoll = 0;
-    this.throttleIn = 0;
-    this.brakeIn = 0;
     this.car.thrusters.fill(0);
     this.syncGroundPose(this.groundFrame());
-    this.writeSnapshot();
+    this.writeSnapshot(0, 0);
   }
 
   /** Advance by dt seconds of game time (uses fixed sub-steps internally). */
@@ -222,17 +218,14 @@ export class CarPhysics {
     for (let i = 0; i < steps; i++) {
       // Controls are ignored once the run is over (scored landing or wreck).
       const live = !this.runEnded;
-      this.throttleIn = live ? throttle : 0;
-      this.brakeIn = live ? brake : 0;
       const thrust = live && controls.thrust;
-      if (this.mode === "grounded") this.stepGrounded(thrust);
+      if (this.mode === "grounded")
+        this.stepGrounded(live ? throttle : 0, live ? brake : 0, thrust);
       else if (this.mode === "airborne")
         this.stepAirborne(thrust, live ? spin : 0);
       else this.stepWreck();
     }
-    this.throttleIn = this.runEnded ? 0 : throttle;
-    this.brakeIn = this.runEnded ? 0 : brake;
-    this.writeSnapshot();
+    this.writeSnapshot(this.runEnded ? 0 : throttle, this.runEnded ? 0 : brake);
   }
 
   /** Events emitted since the previous call, oldest first. */
@@ -270,20 +263,15 @@ export class CarPhysics {
     this.rollRate = 0;
   }
 
-  private stepGrounded(thrust: boolean): void {
+  private stepGrounded(throttle: number, brake: number, thrust: boolean): void {
     let f = this.groundFrame();
-    const throttle = this.throttleIn;
-    const brake = this.brakeIn;
-    this.car.thrusters.fill(0);
-    this.setThrusting(false);
     this.groundTime += SUB;
 
     if (
       thrust &&
       this.gas > 0 &&
       Math.abs(f.angle) < T.liftOffMaxAngle &&
-      this.groundTime >= T.liftOffCooldown &&
-      !this.runEnded
+      this.groundTime >= T.liftOffCooldown
     ) {
       this.launch(false);
       return;
@@ -427,8 +415,6 @@ export class CarPhysics {
     this.launchX = this.px;
     this.airTime = 0;
     this.maxHeight = 0;
-    this.flatTime = 0;
-    this.reversing = false;
     this.catchTarget = NaN;
     this.spinHeld = false;
     // A rigid car resting on a curved surface (the concave ramp, or straddling the
@@ -726,8 +712,6 @@ export class CarPhysics {
     this.wheelRate = this.v / CAR.wheelRadius;
     this.flatTime = 0;
     this.groundTime = 0;
-    this.airTime = 0;
-    this.height = 0;
 
     const runEnding =
       !this.runEnded &&
@@ -767,8 +751,6 @@ export class CarPhysics {
     this.settledSent = false;
     this.setThrusting(false);
     this.car.thrusters.fill(0);
-    this.throttleIn = 0;
-    this.brakeIn = 0;
     this.events.push({
       type: "crash",
       position: { x: this.px, y: this.py, z: 0 },
@@ -872,14 +854,15 @@ export class CarPhysics {
     if (Math.abs(this.tiltRoll) < 1e-4) this.tiltRoll = 0;
   }
 
-  private writeSnapshot(): void {
+  /** Publishes the state to `car`, with the effective throttle and brake inputs. */
+  private writeSnapshot(throttle: number, brake: number): void {
     const c = this.car;
     c.mode = this.mode;
     c.gas = this.gas;
     c.wheelSpin = this.wheelSpin;
     c.suspension = this.susp;
-    c.throttle = this.throttleIn;
-    c.brake = this.brakeIn;
+    c.throttle = throttle;
+    c.brake = brake;
     if (this.mode === "crashed") {
       const w = this.wreck;
       c.position.x = w.px;
@@ -904,8 +887,6 @@ export class CarPhysics {
       c.onRamp = false;
       c.heightAboveGround = w.lowest;
       c.airTime = 0;
-      c.throttle = 0;
-      c.brake = 0;
       return;
     }
     const grounded = this.mode === "grounded";
@@ -940,6 +921,5 @@ export class CarPhysics {
     c.airTime = grounded ? 0 : this.airTime;
     c.trickPitch = this.pitch - this.trickBasePitch;
     c.trickRoll = this.roll - this.trickBaseRoll;
-    if (grounded) c.thrusters.fill(0);
   }
 }
