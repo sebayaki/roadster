@@ -17,6 +17,7 @@ import {
   hullOverlaps,
   POINT_COUNT,
   poseMatrix,
+  poseQuaternion,
   prepareObstacles,
   type ObstacleShape,
 } from "./collision";
@@ -869,10 +870,10 @@ export class CarPhysics {
       c.velocity.x = w.vx;
       c.velocity.y = w.vy;
       c.velocity.z = w.vz;
-      c.quaternion.x = w.qx;
-      c.quaternion.y = w.qy;
-      c.quaternion.z = w.qz;
-      c.quaternion.w = w.qw;
+      c.quaternion.x = w.q.x;
+      c.quaternion.y = w.q.y;
+      c.quaternion.z = w.q.z;
+      c.quaternion.w = w.q.w;
       // ZXY Euler angles of the tumbling body, kept continuous.
       const m = w.m;
       const roll = Math.asin(clamp(m[7], -1, 1));
@@ -903,14 +904,7 @@ export class CarPhysics {
     c.velocity.x = this.vx;
     c.velocity.y = this.vy;
     c.velocity.z = 0;
-    const cp = Math.cos(pitch / 2);
-    const sp = Math.sin(pitch / 2);
-    const cr = Math.cos(roll / 2);
-    const sr = Math.sin(roll / 2);
-    c.quaternion.x = cp * sr;
-    c.quaternion.y = sp * sr;
-    c.quaternion.z = sp * cr;
-    c.quaternion.w = cp * cr;
+    poseQuaternion(pitch, roll, c.quaternion);
     c.pitch = pitch;
     c.roll = roll;
     c.speed = grounded ? this.v : Math.hypot(this.vx, this.vy);

@@ -1,11 +1,13 @@
 import { BODY_BOX } from "@/core/car-spec";
 import { GRAVITY } from "@/core/math";
+import type { Quat } from "@/core/types";
 import {
   CarHull,
   COLLISION_POINTS,
   CORNER_COUNT,
   createContact,
   hullOverlaps,
+  poseQuaternion,
   quatMatrix,
   type ObstacleShape,
 } from "./collision";
@@ -42,10 +44,8 @@ export class WreckBody {
   vx = 0;
   vy = 0;
   vz = 0;
-  qx = 0;
-  qy = 0;
-  qz = 0;
-  qw = 1;
+  /** Orientation (unit quaternion). */
+  readonly q: Quat = { x: 0, y: 0, z: 0, w: 1 };
   /** Angular velocity, world frame (rad/s). */
   wx = 0;
   wy = 0;
@@ -111,16 +111,9 @@ export class WreckBody {
     this.vy = vy;
     const side = vx >= 0 ? 1 : -1;
     this.vz = W.drift * impact * side;
-    const cp = Math.cos(pitch / 2);
-    const sp = Math.sin(pitch / 2);
-    const cr = Math.cos(roll / 2);
-    const sr = Math.sin(roll / 2);
-    this.qx = cp * sr;
-    this.qy = sp * sr;
-    this.qz = sp * cr;
-    this.qw = cp * cr;
-    quatMatrix(this.qx, this.qy, this.qz, this.qw, this.m);
+    poseQuaternion(pitch, roll, this.q);
     const m = this.m;
+    quatMatrix(this.q, m);
     // Pitch spins about world z, roll about the car's forward axis; the extra tumble
     // rolls the car and yaws it about its up axis.
     const roll2 = rollRate + W.tumbleRoll * impact * side;
@@ -361,22 +354,19 @@ export class WreckBody {
   }
 
   private integrateRotation(dt: number): void {
-    const { wx, wy, wz, qx, qy, qz, qw } = this;
+    const { wx, wy, wz, q } = this;
+    const { x: qx, y: qy, z: qz, w: qw } = q;
     const h = dt / 2;
-    let x = qx + h * (wx * qw + wy * qz - wz * qy);
-    let y = qy + h * (wy * qw + wz * qx - wx * qz);
-    let z = qz + h * (wz * qw + wx * qy - wy * qx);
-    let w = qw - h * (wx * qx + wy * qy + wz * qz);
+    const x = qx + h * (wx * qw + wy * qz - wz * qy);
+    const y = qy + h * (wy * qw + wz * qx - wx * qz);
+    const z = qz + h * (wz * qw + wx * qy - wy * qx);
+    const w = qw - h * (wx * qx + wy * qy + wz * qz);
     const len = Math.hypot(x, y, z, w) || 1;
-    x /= len;
-    y /= len;
-    z /= len;
-    w /= len;
-    this.qx = x;
-    this.qy = y;
-    this.qz = z;
-    this.qw = w;
-    quatMatrix(x, y, z, w, this.m);
+    q.x = x / len;
+    q.y = y / len;
+    q.z = z / len;
+    q.w = w / len;
+    quatMatrix(q, this.m);
   }
 
   private updateLowest(): void {

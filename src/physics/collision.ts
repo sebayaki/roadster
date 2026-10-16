@@ -1,5 +1,5 @@
 import { BODY_BOX, CAR, WHEEL_CENTERS } from "@/core/car-spec";
-import type { Obstacle } from "@/core/types";
+import type { Obstacle, Quat } from "@/core/types";
 
 /**
  * Car-local collision points: the 8 corners of BODY_BOX, then the 4 tire contact
@@ -44,14 +44,21 @@ export function poseMatrix(pitch: number, roll: number, m: Float64Array): void {
   m[8] = cr;
 }
 
+/** The same stunt-plane pose qZ(pitch) · qX(roll) as a unit quaternion. */
+export function poseQuaternion(pitch: number, roll: number, out: Quat): void {
+  const cp = Math.cos(pitch / 2);
+  const sp = Math.sin(pitch / 2);
+  const cr = Math.cos(roll / 2);
+  const sr = Math.sin(roll / 2);
+  out.x = cp * sr;
+  out.y = sp * sr;
+  out.z = sp * cr;
+  out.w = cp * cr;
+}
+
 /** Row-major rotation matrix of a unit quaternion. */
-export function quatMatrix(
-  x: number,
-  y: number,
-  z: number,
-  w: number,
-  m: Float64Array
-): void {
+export function quatMatrix(q: Quat, m: Float64Array): void {
+  const { x, y, z, w } = q;
   m[0] = 1 - 2 * (y * y + z * z);
   m[1] = 2 * (x * y - z * w);
   m[2] = 2 * (x * z + y * w);
