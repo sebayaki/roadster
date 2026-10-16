@@ -206,29 +206,6 @@
     0 0 30px rgba(190, 225, 255, 0.55);
 }
 
-/* Phone portrait: narrower thumbs zone. */
-@media (orientation: portrait) {
-  .tc {
-    --tc-edge: 14px;
-    --tc-gap: 10px;
-    --tc-spin: 66px;
-    --tc-gas-w: 72px;
-    --tc-gas-h: 116px;
-    --tc-brake-w: 64px;
-    --tc-brake-h: 86px;
-    --tc-thrust: 76px;
-  }
-}
-
-@media (max-width: 370px) {
-  .tc {
-    --tc-gap: 8px;
-    --tc-spin: 62px;
-    --tc-gas-w: 66px;
-    --tc-brake-w: 60px;
-  }
-}
-
 @keyframes tc-in {
   from {
     transform: translateY(calc(100% + 24px));
