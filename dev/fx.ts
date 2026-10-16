@@ -15,17 +15,12 @@
 import * as THREE from "three";
 import { runHarness, type HarnessContext, type View } from "./harness";
 import { FxSystem } from "@/render/fx";
-import type { RoadsterModel } from "@/render/roadster-model";
-import { CAR, NOZZLE_POSITIONS, WHEEL_CENTERS } from "@/core/car-spec";
+import { RoadsterModel } from "@/render/roadster-model";
+import { CAR } from "@/core/car-spec";
 import { TAU, lerp, smoothstep } from "@/core/math";
-import type {
-  CarMode,
-  CarSnapshot,
-  LevelId,
-  Quality,
-  Vec3,
-} from "@/core/types";
-import type { Scenery } from "@/render/scenery";
+import type { CarMode, CarSnapshot, Quality, Vec3 } from "@/core/types";
+import { getLevel } from "@/levels";
+import { buildScenery, type Scenery } from "@/render/scenery";
 import { GLOW, PALETTE } from "@/render/palette";
 
 declare global {
@@ -296,107 +291,11 @@ function buildVenue(scene: THREE.Scene, quality: Quality): void {
   scene.add(back, back.target);
 }
 
-function hasMeshes(root: THREE.Object3D): boolean {
-  let found = false;
-  root.traverse((o) => {
-    if ((o as THREE.Mesh).isMesh) found = true;
-  });
-  return found;
-}
-
-/** Simple box car (only while the real RoadsterModel has no meshes yet). */
-function addPlaceholderBody(root: THREE.Object3D): void {
-  const white = new THREE.MeshStandardMaterial({
-    color: PALETTE.anoWhite,
-    roughness: 0.45,
-    metalness: 0.1,
-  });
-  const black = new THREE.MeshStandardMaterial({
-    color: PALETTE.satinBlack,
-    roughness: 0.6,
-  });
-  const glass = new THREE.MeshStandardMaterial({
-    color: PALETTE.goldGlass,
-    roughness: 0.15,
-    metalness: 0.6,
-  });
-  const add = (
-    geometry: THREE.BufferGeometry,
-    material: THREE.Material,
-    x: number,
-    y: number,
-    z = 0
-  ) => {
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(x, y, z);
-    mesh.castShadow = true;
-    mesh.name = "fx-placeholder";
-    root.add(mesh);
-    return mesh;
-  };
-  add(new THREE.BoxGeometry(4.3, 0.18, 1.94), black, 0.08, -0.29);
-  add(new THREE.BoxGeometry(4.45, 0.4, 2.0), white, 0.085, -0.02);
-  add(new THREE.BoxGeometry(1.9, 0.44, 1.5), glass, -0.25, 0.4);
-  const wheel = new THREE.CylinderGeometry(0.36, 0.36, 0.3, 20);
-  wheel.rotateX(Math.PI / 2);
-  for (const [x, y, z] of WHEEL_CENTERS) add(wheel, black, x, y, z);
-  const nozzle = new THREE.CylinderGeometry(0.1, 0.12, 0.08, 16);
-  for (const [x, y, z] of NOZZLE_POSITIONS) add(nozzle, black, x, y + 0.04, z);
-  add(
-    new THREE.BoxGeometry(0.03, 0.03, 1.7),
-    new THREE.MeshBasicMaterial({ color: GLOW.white }),
-    2.32,
-    0.02
-  );
-  add(
-    new THREE.BoxGeometry(0.03, 0.03, 1.8),
-    new THREE.MeshBasicMaterial({ color: GLOW.ledRed }),
-    -2.15,
-    0.06
-  );
-}
-
-/** Stand-in with the same anchors when the RoadsterModel module fails to load. */
-function placeholderRoadster(): RoadsterModel {
-  const root = new THREE.Group();
-  const anchors = (list: ReadonlyArray<readonly [number, number, number]>) =>
-    list.map(([x, y, z]) => {
-      const a = new THREE.Object3D();
-      a.position.set(x, y, z);
-      root.add(a);
-      return a;
-    });
-  const stand = {
-    root,
-    nozzles: anchors(NOZZLE_POSITIONS),
-    wheels: anchors(WHEEL_CENTERS),
-    update() {},
-    dispose() {},
-  };
-  // Only root / nozzles / wheels / update are used by this page and FxSystem.
-  return stand as unknown as RoadsterModel;
-}
-
-async function loadRoadster(quality: Quality): Promise<RoadsterModel> {
-  try {
-    const mod = await import("@/render/roadster-model");
-    const model = new mod.RoadsterModel(quality);
-    if (!hasMeshes(model.root)) addPlaceholderBody(model.root);
-    return model;
-  } catch (err) {
-    console.warn("[fx] RoadsterModel unavailable, using a placeholder", err);
-    const model = placeholderRoadster();
-    addPlaceholderBody(model.root);
-    return model;
-  }
-}
-
 let fx: FxSystem;
 let roadster: RoadsterModel;
 let scenery: Scenery | null = null;
 let demo: Demo;
 let lastCycleTime = 0;
-let roadsterFailed = false;
 const car = makeSnapshot();
 const pose = makePose();
 const poseA = makePose();
@@ -443,39 +342,20 @@ function fireEvents(from: number, to: number): void {
   }
 }
 
-/** The game's real venue for a level, or null when it cannot be built yet. */
-async function loadScenery(
-  id: LevelId,
-  quality: Quality
-): Promise<Scenery | null> {
-  try {
-    const [{ buildScenery }, { getLevel }] = await Promise.all([
-      import("@/render/scenery"),
-      import("@/levels"),
-    ]);
-    return buildScenery(getLevel(id), quality);
-  } catch (err) {
-    console.warn("[fx] scenery unavailable, using the stand-in venue", err);
-    return null;
-  }
-}
-
 void runHarness({
   views: VIEWS,
-  async setup(ctx: HarnessContext) {
+  setup(ctx: HarnessContext) {
     const venue = ctx.params.get("scenery");
     if (venue === "backflip" || venue === "kickflip") {
-      scenery = await loadScenery(venue, ctx.quality);
+      scenery = buildScenery(getLevel(venue), ctx.quality);
       // Backflip: hover over the runway left of the Curl; kickflip: before the lineup.
       originX = venue === "backflip" ? -14 : -24;
-    }
-    if (scenery) {
       ctx.scene.add(scenery.root);
       ctx.scene.fog = scenery.fog;
     } else {
       buildVenue(ctx.scene, ctx.quality);
     }
-    roadster = await loadRoadster(ctx.quality);
+    roadster = new RoadsterModel(ctx.quality);
     ctx.scene.add(roadster.root);
     fx = new FxSystem(ctx.scene, ctx.quality);
     window.__fx = fx;
@@ -494,20 +374,7 @@ void runHarness({
     lastCycleTime = t;
     const burnout = car.mode === "grounded" && car.throttle > 0.5;
     car.wheelSpin += (burnout ? 40 : car.speed / CAR.wheelRadius) * dt;
-    if (!roadsterFailed) {
-      try {
-        roadster.update(dt, {
-          wheelSpin: car.wheelSpin,
-          suspension: 0,
-          brake: car.brake,
-          thrusters: car.thrusters,
-          speed: car.speed,
-        });
-      } catch (err) {
-        roadsterFailed = true;
-        console.warn("[fx] RoadsterModel.update failed", err);
-      }
-    }
+    roadster.update(dt, car);
     fx.update(dt, car, roadster, ctx.camera);
     scenery?.update(dt, time, car.position);
   },
