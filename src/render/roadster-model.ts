@@ -85,7 +85,6 @@ export class RoadsterModel {
       out.castShadow = cast;
       out.receiveShadow = receive;
       this.body.add(out);
-      return out;
     };
     mesh(g.paint, m.paint, true, true);
     mesh(g.black, m.black, true, true);
@@ -158,8 +157,8 @@ export class RoadsterModel {
     this.nozzleGlow.computeBoundingSphere();
   }
 
-  update(dt: number, state: RoadsterVisualState): void {
-    void dt;
+  /** Per frame: body heave, wheel spin, tail bar brightness and nozzle glow. */
+  update(_dt: number, state: RoadsterVisualState): void {
     this.body.position.y = -HEAVE * clamp(state.suspension, -1, 1);
 
     // Rolling forward (+x) turns the wheels about local z by -wheelSpin.
@@ -191,6 +190,7 @@ export class RoadsterModel {
     }
   }
 
+  /** Frees the GPU resources (geometries, materials, plate texture, instance buffers) and detaches the model. */
   dispose(): void {
     for (const geometry of this.geometries) geometry.dispose();
     for (const wheel of this.wheelMeshes) wheel.dispose();
