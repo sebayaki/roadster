@@ -1,7 +1,8 @@
 import type { LevelId } from "@/core/types";
+import { LEVEL_ORDER } from "@/levels";
 import type { AutopilotStyle } from "@/physics/autopilot";
 
-/** URL switches (`?quality=` is read by the renderer's detectQuality). */
+/** URL switches (`?quality=` is read by the renderer's detectQuality, `?touch=` by Input). */
 export interface AppParams {
   /** `?level=backflip|kickflip`: skip the menu and start that run. */
   level: LevelId | null;
@@ -9,7 +10,7 @@ export interface AppParams {
   autopilot: AutopilotStyle | null;
   /** `?demo=0` disables the attract demo behind the menu. */
   demo: boolean;
-  /** `?debug=1` draws a wireframe box at the car pose. */
+  /** `?debug=1` draws the car's collision box and local axes (DebugOverlay). */
   debug: boolean;
 }
 
@@ -18,7 +19,7 @@ export function readParams(search: string = location.search): AppParams {
   const level = q.get("level");
   const autopilot = q.get("autopilot");
   return {
-    level: level === "backflip" || level === "kickflip" ? level : null,
+    level: LEVEL_ORDER.find((id) => id === level) ?? null,
     autopilot:
       autopilot === "double"
         ? "double"
