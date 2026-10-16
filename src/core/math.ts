@@ -1,3 +1,5 @@
+import type { Units } from "./types";
+
 export const TAU = Math.PI * 2;
 export const DEG = Math.PI / 180;
 export const GRAVITY = 9.81;
@@ -40,12 +42,12 @@ export function offFullTurn(a: number): number {
 }
 
 /** Meters per second to km/h or mph. */
-export function speedIn(ms: number, units: "metric" | "imperial"): number {
+export function speedIn(ms: number, units: Units): number {
   return units === "metric" ? ms * 3.6 : ms * 2.236936;
 }
 
 /** Meters to meters or feet. */
-export function lengthIn(m: number, units: "metric" | "imperial"): number {
+export function lengthIn(m: number, units: Units): number {
   return units === "metric" ? m : m * 3.28084;
 }
 
