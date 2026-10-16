@@ -4,7 +4,7 @@ import type { CarSnapshot, LevelDef, LevelId, Obstacle } from "@/core/types";
 import { CURL_WIDTH } from "@/levels/backflip";
 
 export type CameraMode =
-  | "attract" // slow cinematic orbit behind the menu
+  | "attract" // menu demo: tracks the car, then frames the stunt
   | "ready" // framing the car at the start line
   | "follow" // the run: chase, then the level's air view
   | "wreck" // orbit the tumbling car
@@ -39,11 +39,10 @@ const CAR_MARGIN = 8;
 const LEAD_TIME = 0.7;
 const LEAD_MAX = 18;
 /**
- * In-run side views (m from the stunt plane). Width fits and panning stay in
- * front of the near-side props: floodlight towers from z ≈ 44 along the
- * backflip runway, stage light rigs at z ≈ 30 beside the lineup. Only the
- * Curl's height may push the backflip camera further out, while it frames the
- * lip, where those towers are far off to the side.
+ * In-run side views (m from the stunt plane), in front of the near-side props:
+ * the stage light rigs at z ≈ 30 beside the lineup, the floodlight towers at
+ * z ≥ 66 along the backflip runway. The backflip view fits the width and pans
+ * within its base distance; only the Curl's height pushes it further out.
  */
 const BACKFLIP_SIDE_DISTANCE = 42;
 const BACKFLIP_SIDE_MAX = 58;
@@ -602,7 +601,7 @@ export class CameraRig {
     this.shot.keepMax = x + CAR_MARGIN + Math.max(0, lead);
   }
 
-  /** Low camera at +z looking slightly up at `this.shot`, perpendicular to the stunt plane. */
+  /** Low camera at +z, swung `yaw` around the framed center, looking slightly up at `this.shot`. */
   private sideShot(out: Pose, dt: number): void {
     const s = this.shot;
     fitSide(s, this.camera.aspect);
