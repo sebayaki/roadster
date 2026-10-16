@@ -1,11 +1,13 @@
 import js from "@eslint/js";
+import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
-  { ignores: ["dist", "node_modules"] },
+export default defineConfig(
+  // Build output, and local screenshots and tool runs (gitignored).
+  globalIgnores(["dist", "snaps"]),
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    extends: [js.configs.recommended, tseslint.configs.recommended],
     files: ["**/*.{ts,js,mjs}"],
     languageOptions: {
       ecmaVersion: 2022,
