@@ -7,6 +7,7 @@ import type {
   CrashReason,
   LevelDef,
   PhysicsEvent,
+  SpinAxis,
 } from "@/core/types";
 import { CURL_WIDTH } from "@/levels/backflip";
 import {
@@ -114,8 +115,8 @@ export class CarPhysics {
   private flatTime = 0;
   /** Seconds since the last touchdown (lift-off cooldown). */
   private groundTime = 0;
-  private flipsPitch = 0;
-  private flipsRoll = 0;
+  /** Full turns already announced by `flip` events, per axis. */
+  private readonly flips: Record<SpinAxis, number> = { pitch: 0, roll: 0 };
   // Run end.
   private runEnded = false;
   private endTime = 0;
@@ -191,8 +192,8 @@ export class CarPhysics {
     this.trickBaseRoll = 0;
     this.flatTime = T.trickResetDelay;
     this.groundTime = T.liftOffCooldown;
-    this.flipsPitch = 0;
-    this.flipsRoll = 0;
+    this.flips.pitch = 0;
+    this.flips.roll = 0;
     this.runEnded = false;
     this.endTime = 0;
     this.settledSent = false;
@@ -369,16 +370,11 @@ export class CarPhysics {
     const load = (GRAVITY * f.tx + this.v * this.v * f.curvature) / GRAVITY - 1;
     this.stepVisuals(clamp(load * T.suspensionLoadScale, -1, 1));
 
-    if (this.runEnded && !this.settledSent) {
-      this.endTime += SUB;
-      if (
-        Math.abs(this.v) < T.landSettleSpeed ||
-        this.endTime >= T.landSettleTimeout
-      ) {
-        this.settledSent = true;
-        this.events.push({ type: "settled" });
-      }
-    }
+    if (this.runEnded)
+      this.checkSettled(
+        Math.abs(this.v) < T.landSettleSpeed,
+        T.landSettleTimeout
+      );
   }
 
   private isOnRamp(): boolean {
@@ -416,8 +412,8 @@ export class CarPhysics {
       if (this.flatTime >= T.trickResetDelay) {
         this.trickBasePitch = this.pitch;
         this.trickBaseRoll = this.roll;
-        this.flipsPitch = 0;
-        this.flipsRoll = 0;
+        this.flips.pitch = 0;
+        this.flips.roll = 0;
       }
     } else {
       this.flatTime = 0;
@@ -575,26 +571,16 @@ export class CarPhysics {
   }
 
   private updateTrickAirborne(): void {
-    const tp = this.pitch - this.trickBasePitch;
-    const tr = this.roll - this.trickBaseRoll;
-    const np = Math.floor((Math.abs(tp) + T.flipTolerance) / TAU);
-    if (np > this.flipsPitch) {
-      this.flipsPitch = np;
-      this.events.push({
-        type: "flip",
-        axis: "pitch",
-        turns: tp > 0 ? np : -np,
-      });
-    }
-    const nr = Math.floor((Math.abs(tr) + T.flipTolerance) / TAU);
-    if (nr > this.flipsRoll) {
-      this.flipsRoll = nr;
-      this.events.push({
-        type: "flip",
-        axis: "roll",
-        turns: tr > 0 ? nr : -nr,
-      });
-    }
+    this.countFlips("pitch", this.pitch - this.trickBasePitch);
+    this.countFlips("roll", this.roll - this.trickBaseRoll);
+  }
+
+  /** Emits `flip` when the trick angle on `axis` completes another full turn. */
+  private countFlips(axis: SpinAxis, angle: number): void {
+    const turns = Math.floor((Math.abs(angle) + T.flipTolerance) / TAU);
+    if (turns <= this.flips[axis]) return;
+    this.flips[axis] = turns;
+    this.events.push({ type: "flip", axis, turns: angle > 0 ? turns : -turns });
   }
 
   /** World x-y of every collision point for the current pose (rot must be set). */
@@ -826,15 +812,20 @@ export class CarPhysics {
     this.wheelRate *= WHEEL_DECAY;
     this.wheelSpin += this.wheelRate * SUB;
     this.stepVisuals(0);
+    this.checkSettled(w.restTime >= T.wreck.restTime, T.wreck.timeout);
+  }
+
+  // ------------------------------------------------------------------ shared
+
+  /** Emits `settled` once, when the car is at rest or `timeout` s after the run ended. */
+  private checkSettled(atRest: boolean, timeout: number): void {
     if (this.settledSent) return;
     this.endTime += SUB;
-    if (w.restTime >= T.wreck.restTime || this.endTime >= T.wreck.timeout) {
+    if (atRest || this.endTime >= timeout) {
       this.settledSent = true;
       this.events.push({ type: "settled" });
     }
   }
-
-  // ------------------------------------------------------------------ shared
 
   private setThrusting(on: boolean): void {
     if (on === this.thrusting) return;
