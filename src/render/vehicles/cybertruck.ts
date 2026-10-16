@@ -1,13 +1,7 @@
 import type { Quality } from "@/core/types";
+import { linear } from "../roadster/curve";
 import { lightBand } from "./car-body";
-import {
-  grid,
-  linear,
-  type MeshBuilder,
-  type P3,
-  SLOT,
-  stations,
-} from "./geometry";
+import { grid, type MeshBuilder, type P3, SLOT, stations } from "./geometry";
 import type { Envelope } from "./specs";
 import { addWheel } from "./wheels";
 

@@ -1,6 +1,6 @@
 import type { Quality } from "@/core/types";
+import type { Curve } from "../roadster/curve";
 import {
-  type Fn,
   grid,
   type MeshBuilder,
   outlineAtHeight,
@@ -33,15 +33,15 @@ export const BAND = {
 export interface CarBodyDef {
   halfLength: number;
   /** Underside, top centerline (deck / roof / hood), roof rail / hood edge, belt line, widest line. */
-  yb: Fn;
-  yTop: Fn;
-  yRail: Fn;
-  yBelt: Fn;
-  yShoulder: Fn;
+  yb: Curve;
+  yTop: Curve;
+  yRail: Curve;
+  yBelt: Curve;
+  yShoulder: Curve;
   /** Max half-width, belt half-width, roof-rail half-width. */
-  w: Fn;
-  wBelt: Fn;
-  wRail: Fn;
+  w: Curve;
+  wBelt: Curve;
+  wRail: Curve;
   /** Length of the plan-view rounding of the nose and tail (superelliptic, m). */
   noseR: number;
   tailR: number;

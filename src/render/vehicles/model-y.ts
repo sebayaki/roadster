@@ -1,6 +1,7 @@
 import type { Quality } from "@/core/types";
+import { curve } from "../roadster/curve";
 import { BAND, carBody, lightBand } from "./car-body";
-import { curve, type MeshBuilder, SLOT } from "./geometry";
+import { type MeshBuilder, SLOT } from "./geometry";
 import type { Envelope } from "./specs";
 
 const L = 2.395;
