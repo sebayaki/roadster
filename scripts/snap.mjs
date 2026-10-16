@@ -8,12 +8,13 @@
  *
  * The page may set `window.__snapReady = true` once its first frame is ready;
  * the tool waits for that flag (up to --timeout) before running --eval and --wait.
- * Console output and page errors are printed so runtime failures are visible.
+ * Console output and page errors are printed so runtime failures are visible;
+ * a page error also makes the exit code 1.
  * Requires a local Chrome (override the path with CHROME_PATH).
  */
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import puppeteer from "puppeteer-core";
+import { launchChrome, waitForSnapReady } from "./chrome.mjs";
 
 const args = process.argv.slice(2);
 const positional = args.filter((a) => !a.startsWith("--"));
@@ -37,23 +38,11 @@ if (!url || !out) {
 const [width, height] = (flags.size ?? "1280x720").split("x").map(Number);
 const wait = Number(flags.wait ?? 1000);
 const timeout = Number(flags.timeout ?? 30000);
-const executablePath =
-  process.env.CHROME_PATH ??
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
-const browser = await puppeteer.launch({
-  executablePath,
-  headless: true,
-  args: [
-    `--window-size=${width},${height}`,
-    "--ignore-gpu-blocklist",
-    "--enable-webgl",
-    "--use-angle=metal",
-    "--autoplay-policy=no-user-gesture-required",
-    "--no-first-run",
-    "--no-default-browser-check",
-  ],
-});
+const browser = await launchChrome([
+  `--window-size=${width},${height}`,
+  "--autoplay-policy=no-user-gesture-required",
+]);
 
 let failed = false;
 try {
@@ -73,9 +62,9 @@ try {
   );
 
   await page.goto(url, { waitUntil: "load", timeout });
-  await page
-    .waitForFunction("window.__snapReady === true", { timeout })
-    .catch(() => console.log("[snap] window.__snapReady not set; continuing"));
+  await waitForSnapReady(page, timeout).catch(() =>
+    console.log("[snap] window.__snapReady not set; continuing")
+  );
 
   if (flags.eval) {
     const result = await page.evaluate(`(async () => { ${flags.eval} })()`);

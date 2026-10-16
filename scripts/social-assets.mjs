@@ -11,20 +11,17 @@
  * Override the Chrome binary with CHROME_PATH.
  */
 import { writeFileSync } from "node:fs";
-import puppeteer from "puppeteer-core";
+import { launchChrome, waitForSnapReady } from "./chrome.mjs";
 
 const base =
   process.argv.find((a) => a.startsWith("--base="))?.slice(7) ??
   "http://localhost:5173";
-const executablePath =
-  process.env.CHROME_PATH ??
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 /** Loads a dev scene, waits for its first frames, and returns a screenshot. */
 async function capture(page, path, width, height, options) {
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
   await page.goto(`${base}${path}`, { waitUntil: "load" });
-  await page.waitForFunction("window.__snapReady === true", { timeout: 30000 });
+  await waitForSnapReady(page);
   await new Promise((r) => setTimeout(r, 600));
   return page.screenshot(options);
 }
@@ -97,11 +94,7 @@ function ico(images) {
   return Buffer.concat([header, ...images.map((i) => i.png)]);
 }
 
-const browser = await puppeteer.launch({
-  executablePath,
-  headless: true,
-  args: ["--ignore-gpu-blocklist", "--enable-webgl", "--use-angle=metal"],
-});
+const browser = await launchChrome();
 
 try {
   const page = await browser.newPage();
