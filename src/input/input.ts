@@ -154,11 +154,9 @@ export class Input {
     this.queue = [];
   }
 
-  /** Announce to overlays, queue for the App when nobody claimed it. Returns true if claimed. */
-  private emit(action: InputAction): boolean {
-    const claimed = announceAction(action);
-    if (!claimed) this.queue.push(action);
-    return claimed;
+  /** Announce to overlays, queue for the App when nobody claimed it. */
+  private emit(action: InputAction): void {
+    if (!announceAction(action)) this.queue.push(action);
   }
 
   private readonly onKeyDown = (e: KeyboardEvent): void => {
