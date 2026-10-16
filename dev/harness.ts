@@ -13,6 +13,7 @@
  */
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { clamp } from "@/core/math";
 import { Renderer } from "@/render/renderer";
 import type { Quality } from "@/core/types";
 
@@ -133,7 +134,8 @@ export async function runHarness(opts: HarnessOptions): Promise<void> {
   let frames = 0;
   renderer.gl.setAnimationLoop((now) => {
     timer.update(now);
-    const dt = Math.min(timer.getDelta(), 1 / 20);
+    // The first frame's timestamp can predate the timer after a long setup.
+    const dt = clamp(timer.getDelta(), 0, 1 / 20);
     if (!freeze) {
       time += dt;
       opts.update?.(dt, time, ctx);
