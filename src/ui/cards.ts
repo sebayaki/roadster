@@ -1,7 +1,7 @@
 import type { LandingGrade, LevelDef, Units } from "@/core/types";
 import { DEG } from "@/core/math";
 import { buttonKey, type ControlScheme } from "./controls-info";
-import { h, icon, keycap, replayClass, setChildren } from "./dom";
+import { h, icon, keycap, onPress, replayClass, setChildren } from "./dom";
 import {
   SHORT_LINE,
   SHORT_TIP,
@@ -148,10 +148,10 @@ export class ResultCard {
       ICONS.share,
       null
     );
-    retry.addEventListener("click", () => this.run((o) => o.onRetry()));
-    next.addEventListener("click", () => this.run((o) => o.onNext()));
-    menu.addEventListener("click", () => this.run((o) => o.onMenu()));
-    share.addEventListener("click", () => this.share());
+    onPress(retry, () => this.run((o) => o.onRetry()));
+    onPress(next, () => this.run((o) => o.onNext()));
+    onPress(menu, () => this.run((o) => o.onMenu()));
+    onPress(share, () => this.share());
     if (!this.nativeShare)
       share.setAttribute("aria-label", "Share on X (opens a new tab)");
 
@@ -344,11 +344,9 @@ export class PauseCard {
     this.resume = button("Resume", ICONS.play, null, true);
     this.restart = button("Restart", ICONS.retry, null);
     this.menu = button("Menu", ICONS.menu, null);
-    this.resume.addEventListener("click", () => this.run((o) => o.onResume()));
-    this.restart.addEventListener("click", () =>
-      this.run((o) => o.onRestart())
-    );
-    this.menu.addEventListener("click", () => this.run((o) => o.onMenu()));
+    onPress(this.resume, () => this.run((o) => o.onResume()));
+    onPress(this.restart, () => this.run((o) => o.onRestart()));
+    onPress(this.menu, () => this.run((o) => o.onMenu()));
     this.card = h(
       "div",
       { class: "hud-card pause-card" },

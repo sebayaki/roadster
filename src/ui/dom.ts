@@ -1,6 +1,9 @@
-/** Tiny DOM helpers for the HUD: element builder, keycaps and change-detecting setters. */
+/** Tiny DOM helpers for the HUD: element builder, keycaps, button presses and change-detecting setters. */
 import type { HintSegment } from "./controls-info";
 import { ICONS } from "./icons";
+
+/** A click this soon after a secondary-pointer tap on the same button is that tap's own click (ms). */
+const TAP_CLICK_WINDOW = 500;
 
 export type Child = Node | string | number | null | undefined | false;
 export type Attrs = Record<
@@ -65,6 +68,28 @@ export function segmentNode(seg: HintSegment): Node {
     },
     icon(ICONS[seg.icon])
   );
+}
+
+/**
+ * Run `action` when `button` is pressed. Its click covers the mouse, the
+ * primary touch and the keyboard. Browsers send no click for a secondary touch
+ * (Chrome clicks for the primary pointer only), e.g. PAUSE tapped while a thumb
+ * holds GAS, so such a tap acts on its pointerup when it ends on the button; a
+ * click right after it is ignored, so one tap never acts twice.
+ */
+export function onPress(button: HTMLElement, action: () => void): void {
+  let tappedAt = Number.NEGATIVE_INFINITY;
+  button.addEventListener("pointerup", (e) => {
+    if (e.isPrimary || e.pointerType === "mouse") return;
+    const hit = document.elementFromPoint(e.clientX, e.clientY);
+    if (!hit || !button.contains(hit)) return;
+    tappedAt = performance.now();
+    action();
+  });
+  button.addEventListener("click", () => {
+    if (performance.now() - tappedAt < TAP_CLICK_WINDOW) return;
+    action();
+  });
 }
 
 /** Restart a CSS entrance animation by re-adding `className` (forces one style flush; call rarely). */

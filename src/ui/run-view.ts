@@ -13,6 +13,7 @@ import {
   TransformSlot,
   h,
   icon,
+  onPress,
   replayClass,
   segmentNode,
   setChildren,
@@ -151,8 +152,8 @@ export class RunView {
       },
       icon(ICONS.pause)
     );
-    this.muteButton.addEventListener("click", () => dispatchAction("mute"));
-    pauseButton.addEventListener("click", () => dispatchAction("pause"));
+    onPress(this.muteButton, () => dispatchAction("mute"));
+    onPress(pauseButton, () => dispatchAction("pause"));
 
     // Speedometer: digits + unit, bar with the recommended band and a live marker.
     const speedDigits = h("span", { class: "speed-val" }, "0");
