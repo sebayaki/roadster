@@ -368,6 +368,7 @@ body {
 .menu-brand {
   grid-area: brand;
   min-width: 0;
+  container-type: inline-size;
 }
 
 .hud-menu > .tg-group {
@@ -387,9 +388,10 @@ body {
   box-shadow: 0 0 14px var(--hud-accent-glow);
 }
 
+/* "RDSTR STUNTS" is ~13em wide with its tracking: scale it to the brand box. */
 .wordmark {
   margin: 0;
-  font-size: clamp(28px, 4.6vw, 62px);
+  font-size: clamp(16px, 7.1cqi, 62px);
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.4em;
@@ -432,6 +434,7 @@ body {
   border-radius: 20px;
   pointer-events: auto;
   cursor: pointer;
+  container-type: inline-size;
   transition:
     transform 0.3s var(--hud-ease),
     border-color 0.3s,
@@ -458,11 +461,18 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
   padding-top: 2px;
   font-size: 10px;
   font-weight: 650;
   letter-spacing: 0.26em;
   text-transform: uppercase;
+}
+
+.card-eyebrow > * {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .card-index {
@@ -611,6 +621,7 @@ body {
   padding: 16px 18px;
   border-radius: 20px;
   pointer-events: auto;
+  container-type: inline-size;
 }
 
 .sheet-head {
@@ -618,6 +629,15 @@ body {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 12px;
+  list-style: none;
+}
+
+.sheet-head::-webkit-details-marker {
+  display: none;
+}
+
+.sheet-fold:not([open]) > .sheet-head {
+  margin-bottom: 0;
 }
 
 .sheet-scheme {
@@ -643,6 +663,7 @@ body {
 }
 
 .sheet-row dt {
+  min-width: 0;
   font-size: 12px;
   color: var(--hud-dim);
   white-space: nowrap;
@@ -1920,52 +1941,10 @@ body {
     gap: 10px;
   }
 
-  .stunt-card {
-    padding: 14px 16px;
-  }
-
-  /* Compact card: one-line eyebrow, pictogram tucked in the corner. */
+  /* Compact card: one-line eyebrow. */
   .card-eyebrow {
     flex-direction: row;
     gap: 10px;
-  }
-
-  .card-art {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    width: 92px;
-    height: 46px;
-    margin: 0;
-  }
-
-  .card-title {
-    margin-top: 8px;
-    font-size: 24px;
-  }
-
-  .card-tagline {
-    margin-top: 6px;
-    font-size: 12px;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-  }
-
-  .card-foot {
-    padding-top: 10px;
-  }
-
-  .card-best {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 10px;
-  }
-
-  .menu-sheet {
-    padding: 12px 16px;
   }
 
   .sheet-rows {
@@ -1997,49 +1976,6 @@ body {
 @media (max-width: 640px) and (orientation: portrait) and (max-height: 720px) {
   .menu-brand::before {
     margin-bottom: 12px;
-  }
-
-  .wordmark {
-    font-size: 26px;
-  }
-
-  .menu-sub {
-    margin-top: 10px;
-    font-size: 9.5px;
-    letter-spacing: 0.22em;
-  }
-
-  .stunt-card {
-    padding: 12px 14px;
-  }
-
-  .card-tagline {
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-  }
-
-  .card-foot {
-    padding-top: 8px;
-  }
-
-  .card-play {
-    min-height: 38px;
-  }
-
-  .menu-sheet {
-    padding: 10px 14px;
-  }
-
-  .sheet-head {
-    margin-bottom: 8px;
-  }
-
-  .tg {
-    height: 36px;
-  }
-
-  .tg-seg {
-    height: 28px;
   }
 
   .run-howto {
@@ -2102,24 +2038,10 @@ body {
   }
 }
 
-/* Phones in portrait during a run: the cluster sits above the thumbs. */
+/* Phones in portrait: the rotate hint shows in the how-to card. */
 @media (orientation: portrait) {
-  .hud-run.is-touch .run-cluster {
-    bottom: calc(var(--safe-b) + 230px);
-    width: min(500px, calc(100% - var(--safe-l) - var(--safe-r) - 28px));
-    min-width: 0;
-  }
-
-  .hud-run.is-touch .run-air {
-    bottom: calc(var(--safe-b) + 118px);
-  }
-
   .hud-run.is-touch .howto-rotate {
     display: grid;
-  }
-
-  .hud-popups {
-    top: 24%;
   }
 }
 
@@ -2131,10 +2053,6 @@ body {
 
   .menu-brand::before {
     margin-bottom: 10px;
-  }
-
-  .wordmark {
-    font-size: 26px;
   }
 
   .menu-sub {
@@ -2731,35 +2649,10 @@ body {
  * container queries, so every column width between the layout breakpoints
  * stays tidy: no buttons or keys spilling out, no labels broken mid-word.
  */
-.menu-brand,
-.stunt-card,
-.menu-sheet {
-  container-type: inline-size;
-}
-
-/* "RDSTR STUNTS" is ~13em wide with its tracking: scale it to the brand box. */
-.wordmark {
-  font-size: clamp(16px, 7.1cqi, 62px);
-}
-
 @media (max-height: 520px) and (orientation: landscape) {
   .wordmark {
     font-size: clamp(16px, 7.1cqi, 26px);
   }
-}
-
-.card-eyebrow {
-  min-width: 0;
-}
-
-.card-eyebrow > * {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.sheet-row dt {
-  min-width: 0;
 }
 
 /* Narrow cards: smaller art and title; PLAY wraps under BEST if it must. */
@@ -2868,18 +2761,6 @@ body {
  * where the on-screen buttons explain themselves) so the attract demo stays
  * visible behind the menu.
  */
-.sheet-head {
-  list-style: none;
-}
-
-.sheet-head::-webkit-details-marker {
-  display: none;
-}
-
-.sheet-fold:not([open]) > .sheet-head {
-  margin-bottom: 0;
-}
-
 @media (max-width: 640px) and (orientation: portrait) {
   .menu-sub {
     margin-top: 10px;
