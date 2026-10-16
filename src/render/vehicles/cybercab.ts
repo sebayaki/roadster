@@ -1,6 +1,6 @@
 import type { Quality } from "@/core/types";
 import { curve } from "../roadster/curve";
-import { BAND, carBody, lightBand } from "./car-body";
+import { carBody, lightBand } from "./car-body";
 import { type MeshBuilder, SLOT } from "./geometry";
 import type { Envelope } from "./specs";
 
@@ -111,19 +111,12 @@ export function buildCybercab(
       rim: 0.8,
       wheelStyle: "cover",
       archRadius: 0.395,
-      keyXs: [SIDE_GLASS_END, 0.75, 1.95, -2.05],
-      creaseXs: [REAR_GLASS, COWL],
-      band(band, x) {
-        if (band === BAND.under || band === BAND.rocker) return SLOT.trim;
-        if (band === BAND.lower && (x > 1.95 || x < -2.05)) return SLOT.trim;
-        if (band === BAND.window) {
-          return x > SIDE_GLASS_END && x < COWL ? SLOT.glass : SLOT.paint;
-        }
-        if (band >= BAND.roofOuter) {
-          return x > REAR_GLASS && x < COWL ? SLOT.glass : SLOT.paint;
-        }
-        return SLOT.paint;
-      },
+      cowl: COWL,
+      rearGlass: REAR_GLASS,
+      sideGlassEnd: SIDE_GLASS_END,
+      bumperRear: -2.05,
+      bumperFront: 1.95,
+      keyXs: [0.75],
     },
     env,
     quality

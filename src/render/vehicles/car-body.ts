@@ -14,7 +14,7 @@ import type { Envelope } from "./specs";
 import { addWheel, type WheelStyle } from "./wheels";
 
 /** Surface bands of a car body, bottom to top (between consecutive section rows). */
-export const BAND = {
+const BAND = {
   under: 0,
   rocker: 1,
   lower: 2,
@@ -55,11 +55,16 @@ export interface CarBodyDef {
   rim: number;
   wheelStyle: WheelStyle;
   archRadius: number;
-  /** Extra exact stations (material boundaries) and hard-edged stations. */
+  /** Windshield base and rear window base (hard edges): the roof is glass between them. */
+  cowl: number;
+  rearGlass: number;
+  /** Rear end of the side glass, which runs forward to the cowl. */
+  sideGlassEnd: number;
+  /** The lower band is black bumper trim behind `bumperRear` and ahead of `bumperFront`. */
+  bumperRear: number;
+  bumperFront: number;
+  /** Extra exact stations (keys of the roof line). */
   keyXs: number[];
-  creaseXs: number[];
-  /** Material of a band at x. */
-  band(band: number, x: number): Slot;
 }
 
 /** Superellipse exponents of the plan-view nose / tail rounding (2 = ellipse). */
@@ -93,7 +98,16 @@ export function carBody(
     ax + R,
     ax + R + ARCH_EDGE,
   ]);
-  const must = [-L, L, ...d.keyXs, ...d.creaseXs, ...archEdges];
+  const creaseXs = [d.rearGlass, d.cowl, ...archEdges];
+  const must = [
+    -L,
+    L,
+    d.sideGlassEnd,
+    d.bumperRear,
+    d.bumperFront,
+    ...d.keyXs,
+    ...creaseXs,
+  ];
   const extra: number[] = [];
   const step = high ? 0.07 : 0.16;
   for (let x = -L + step; x < L; x += step) extra.push(x);
@@ -169,10 +183,23 @@ export function carBody(
     return ys.map((y, j): P3 => [x, y, Math.min(ws[j] * t, env(y))]);
   });
 
-  const creases = new Set([...d.creaseXs, ...archEdges]);
+  const creases = new Set(creaseXs);
   grid(b, {
     pts,
-    slot: (i, j) => d.band(j, (xs[i] + xs[i + 1]) / 2),
+    slot(i, j) {
+      const x = (xs[i] + xs[i + 1]) / 2;
+      if (j === BAND.under || j === BAND.rocker) return SLOT.trim;
+      if (j === BAND.lower && (x < d.bumperRear || x > d.bumperFront)) {
+        return SLOT.trim;
+      }
+      if (j === BAND.window) {
+        return x > d.sideGlassEnd && x < d.cowl ? SLOT.glass : SLOT.paint;
+      }
+      if (j >= BAND.roofOuter) {
+        return x > d.rearGlass && x < d.cowl ? SLOT.glass : SLOT.paint;
+      }
+      return SLOT.paint;
+    },
     creaseI: (i) => creases.has(xs[i]),
     creaseJ: (j) => j === 1 || j === 5 || j === 6,
   });

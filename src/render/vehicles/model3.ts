@@ -1,6 +1,6 @@
 import type { Quality } from "@/core/types";
 import { curve } from "../roadster/curve";
-import { BAND, carBody, lightBand } from "./car-body";
+import { carBody, lightBand } from "./car-body";
 import { type MeshBuilder, SLOT } from "./geometry";
 import type { Envelope } from "./specs";
 
@@ -115,19 +115,12 @@ export function buildModel3(
       rim: 0.68,
       wheelStyle: "spokes",
       archRadius: 0.385,
-      keyXs: [SIDE_GLASS_END, 0.55, 2.15, -2.1],
-      creaseXs: [REAR_GLASS, COWL],
-      band(band, x) {
-        if (band === BAND.under || band === BAND.rocker) return SLOT.trim;
-        if (band === BAND.lower && (x > 2.15 || x < -2.1)) return SLOT.trim;
-        if (band === BAND.window) {
-          return x > SIDE_GLASS_END && x < COWL ? SLOT.glass : SLOT.paint;
-        }
-        if (band >= BAND.roofOuter) {
-          return x > REAR_GLASS && x < COWL ? SLOT.glass : SLOT.paint;
-        }
-        return SLOT.paint;
-      },
+      cowl: COWL,
+      rearGlass: REAR_GLASS,
+      sideGlassEnd: SIDE_GLASS_END,
+      bumperRear: -2.1,
+      bumperFront: 2.15,
+      keyXs: [0.55],
     },
     env,
     quality
