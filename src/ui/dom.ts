@@ -74,13 +74,24 @@ export function segmentNode(seg: HintSegment): Node {
  * Run `action` when `button` is pressed. Its click covers the mouse, the
  * primary touch and the keyboard. Browsers send no click for a secondary touch
  * (Chrome clicks for the primary pointer only), e.g. PAUSE tapped while a thumb
- * holds GAS, so such a tap acts on its pointerup when it ends on the button; a
- * click right after it is ignored, so one tap never acts twice.
+ * holds GAS, so a secondary touch that goes down and lifts on the button acts
+ * on its pointerup. A finger that went down elsewhere never does, e.g. one
+ * still on GAS when a card covers it. A click right after such a tap is
+ * ignored, so one tap never acts twice.
  */
 export function onPress(button: HTMLElement, action: () => void): void {
+  /** The secondary touch that went down on the button. */
+  let pointerId: number | null = null;
   let tappedAt = Number.NEGATIVE_INFINITY;
+  button.addEventListener("pointerdown", (e) => {
+    if (!e.isPrimary && e.pointerType !== "mouse") pointerId = e.pointerId;
+  });
+  button.addEventListener("pointercancel", (e) => {
+    if (e.pointerId === pointerId) pointerId = null;
+  });
   button.addEventListener("pointerup", (e) => {
-    if (e.isPrimary || e.pointerType === "mouse") return;
+    if (e.pointerId !== pointerId) return;
+    pointerId = null;
     const hit = document.elementFromPoint(e.clientX, e.clientY);
     if (!hit || !button.contains(hit)) return;
     tappedAt = performance.now();

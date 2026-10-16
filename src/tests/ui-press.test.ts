@@ -9,19 +9,33 @@ class FakeButton extends EventTarget {
 }
 
 /** Node has no PointerEvent: a plain Event carrying the fields onPress reads. */
-function pointerUp(
+function pointer(
   target: EventTarget,
-  isPrimary: boolean,
-  pointerType: string
+  type: "pointerdown" | "pointerup" | "pointercancel",
+  pointerId: number,
+  isPrimary = false,
+  pointerType = "touch"
 ) {
   target.dispatchEvent(
-    Object.assign(new Event("pointerup"), {
+    Object.assign(new Event(type), {
+      pointerId,
       isPrimary,
       pointerType,
       clientX: 10,
       clientY: 10,
     })
   );
+}
+
+/** A pointer that goes down and lifts on `target`. */
+function tap(
+  target: EventTarget,
+  pointerId: number,
+  isPrimary = false,
+  pointerType = "touch"
+) {
+  pointer(target, "pointerdown", pointerId, isPrimary, pointerType);
+  pointer(target, "pointerup", pointerId, isPrimary, pointerType);
 }
 
 describe("onPress", () => {
@@ -50,16 +64,16 @@ describe("onPress", () => {
 
   it("acts once per click (mouse, primary touch, keyboard)", () => {
     const { button, press } = setup();
-    pointerUp(button, true, "mouse");
-    pointerUp(button, true, "touch");
+    tap(button, 1, true, "mouse");
+    tap(button, 2, true, "touch");
     expect(press).not.toHaveBeenCalled();
     button.dispatchEvent(new Event("click"));
     expect(press).toHaveBeenCalledTimes(1);
   });
 
-  it("acts once on a secondary touch that lifts on the button", () => {
+  it("acts once on a secondary touch that goes down and lifts on the button", () => {
     const { button, press } = setup();
-    pointerUp(button, false, "touch");
+    tap(button, 3);
     expect(press).toHaveBeenCalledTimes(1);
     // A browser that also clicks for that tap: still one press.
     now += 50;
@@ -74,9 +88,19 @@ describe("onPress", () => {
   it("ignores a secondary touch that lifts off the button", () => {
     const { button, press } = setup();
     hit = {};
-    pointerUp(button, false, "touch");
+    tap(button, 3);
     hit = null;
-    pointerUp(button, false, "touch");
+    tap(button, 4);
+    expect(press).not.toHaveBeenCalled();
+  });
+
+  it("ignores a secondary touch that went down elsewhere or was cancelled", () => {
+    const { button, press } = setup();
+    // A finger held on GAS whose capture the hidden touch controls released.
+    pointer(button, "pointerup", 5);
+    pointer(button, "pointerdown", 6);
+    pointer(button, "pointercancel", 6);
+    pointer(button, "pointerup", 6);
     expect(press).not.toHaveBeenCalled();
   });
 });
