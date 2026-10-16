@@ -22,22 +22,22 @@ export const X_TAIL = -AXLE - CAR.rearOverhang + 0.012;
 /** Windshield base. */
 export const X_COWL = 1.6;
 /** Where the side glass' lower edge starts rising, and its rear tip. */
-export const X_KINK = -0.41;
-export const X_TIP = -0.953;
+const X_KINK = -0.41;
+const X_TIP = -0.953;
 /** Rear end of the glass canopy (a painted lip closes the deck behind it). */
-export const X_RGLASS_END = -2.05;
+const X_RGLASS_END = -2.05;
 /** Inner wheel-well wall. */
-export const WELL_Z = 0.62;
+const WELL_Z = 0.62;
 
 /** Wheel arches: center x and opening radius (the wheel center is at h = wheelRadius). */
-export const ARCHES = [
+const ARCHES = [
   { x: AXLE, r: 0.37 },
   { x: -AXLE, r: 0.39 },
 ] as const;
 
 /** Station tags for the duplicated stations at the arch edges. */
-export const ARCH_IN = 1;
-export const ARCH_OUT = 2;
+const ARCH_IN = 1;
+const ARCH_OUT = 2;
 
 // ---------------------------------------------------------------------------
 // Rails (h = height above ground, z = half width), front = +x.
@@ -446,7 +446,8 @@ export function bodyStations(step: number, archStep: number): Station[] {
     { x: X_RGLASS_END },
     { x: X_TIP },
     { x: X_KINK },
-    { x: X_COWL, crease: [P.B, 99] },
+    // The windshield base: a hard edge from the belt up.
+    { x: X_COWL, crease: [P.B, Infinity] },
     { x: X_NOSE },
   ];
   for (const a of ARCHES) {
