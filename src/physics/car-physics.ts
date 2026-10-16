@@ -415,6 +415,8 @@ export class CarPhysics {
     this.launchX = this.px;
     this.airTime = 0;
     this.maxHeight = 0;
+    this.flatTime = 0;
+    this.reversing = false;
     this.catchTarget = NaN;
     this.spinHeld = false;
     // A rigid car resting on a curved surface (the concave ramp, or straddling the
@@ -711,6 +713,8 @@ export class CarPhysics {
     this.wheelRate = this.v / CAR.wheelRadius;
     this.flatTime = 0;
     this.groundTime = 0;
+    this.airTime = 0;
+    this.height = 0;
 
     const runEnding =
       !this.runEnded &&

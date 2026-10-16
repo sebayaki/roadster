@@ -3,11 +3,13 @@ import { CAR } from "@/core/car-spec";
 import { GRAVITY, offFullTurn } from "@/core/math";
 import type { CarSnapshot, Controls } from "@/core/types";
 import { backflipLevel } from "@/levels/backflip";
+import { TUNING } from "@/physics/tuning";
 import {
   autopilotDriver,
   count,
   cruise,
   first,
+  gasBelow,
   IDLE,
   ofType,
   simulate,
@@ -221,5 +223,25 @@ describe("backflip: ramp physics", () => {
     // Still driving: controls work after the hop.
     expect(physics.car.throttle).toBe(1);
     expect(physics.car.speed).toBeGreaterThan(20);
+  });
+
+  it("a hop onto the Curl leaves no stale height for the lip launch", () => {
+    // One sub-step per frame: the lip launch frame is published before the jump's first
+    // height measurement, so it must read 0, not the hop's last height above the ramp.
+    let hop = -1;
+    const driver: Driver = (car, time) => {
+      if (hop < 0 && car.position.x >= -5) hop = time;
+      const thrust = hop >= 0 && time - hop < 0.2;
+      return { ...IDLE, throttle: gasBelow(car, 95), thrust };
+    };
+    const { events, physics } = simulate(level, driver, {
+      dt: TUNING.substep,
+      until: (e) => e.type === "launch" && e.fromRamp,
+    });
+    expect(ofType(events, "launch").map((e) => e.fromRamp)).toEqual([
+      false,
+      true,
+    ]);
+    expect(physics.car.heightAboveGround).toBe(0);
   });
 });
