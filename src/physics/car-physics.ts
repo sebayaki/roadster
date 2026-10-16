@@ -46,13 +46,13 @@ const NO_EVENTS = Object.freeze([]) as unknown as PhysicsEvent[];
 
 type Surface = "ground" | "ramp" | "rampBack";
 
-/** Offset of `angle` from the nearest full turn, in (−π, π]. */
+/** Offset of `angle` from the nearest full turn, in [−π, π). */
 function uprightError(angle: number): number {
   return angle - TAU * Math.round(angle / TAU);
 }
 
 /**
- * Arcade stunt physics for one level (see the design spec).
+ * Arcade stunt physics for one level.
  * Grounded: 1D motion along the level profile. Airborne: 2D ballistic flight in
  * the x-y plane with pitch/roll. Crashed: free 3D rigid-body tumble.
  */

@@ -120,9 +120,9 @@ export interface HumanPlan {
 }
 
 /**
- * Keyboard player with a reaction delay, like humanplay.mjs: gas to a speed, (kickflip)
- * thrust off the ground until ~3 m up, hold the spin key until the trick angle reaches
- * a full turn + `release`, then thrust while upright and falling to cushion the landing.
+ * Keyboard player with a reaction delay: gas to a speed, (kickflip) thrust off the
+ * ground until ~3 m up, hold the spin key until the trick angle reaches a full turn
+ * + `release`, then thrust while upright and falling to cushion the landing.
  */
 export function reactiveHuman(level: LevelDef, plan: HumanPlan): Driver {
   const pitchAxis = level.spinAxis === "pitch";

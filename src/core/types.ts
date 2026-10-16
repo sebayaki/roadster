@@ -86,14 +86,18 @@ export interface CarSnapshot {
   suspension: number;
   /** Grounded on a curved / non-flat section of the track. */
   onRamp: boolean;
-  /** Distance from the lowest point of the car to the surface below (0 when grounded). */
+  /**
+   * Distance from the lowest point of the car to the surface below (0 when grounded;
+   * while crashed, the lowest body corner's height above y = 0).
+   */
   heightAboveGround: number;
-  /** Seconds since leaving the ground (0 while grounded). */
+  /** Seconds since leaving the ground (0 unless airborne). */
   airTime: number;
   /**
    * Rotation accumulated during the current trick (rad), signed like pitch/roll.
    * Starts counting when the car leaves flat ground (enters the ramp or lifts off)
-   * and resets once it is back on flat ground. Drives the live HUD rotation dial.
+   * and resets after a moment back on flat ground; held while crashed. Drives the
+   * live HUD rotation dial.
    */
   trickPitch: number;
   trickRoll: number;
@@ -199,7 +203,7 @@ export type LandingGrade = "perfect" | "great" | "good";
 export interface RunStats {
   /** Seconds airborne for the scored jump. */
   airTime: number;
-  /** Highest point of the car's underside above the ground (m). */
+  /** Greatest height of the car's lowest point above the surface below (m). */
   maxHeight: number;
   /** Horizontal distance between launch and touchdown (m). */
   distance: number;
@@ -210,12 +214,17 @@ export interface RunStats {
 }
 
 export interface ScoreBreakdown {
+  /** Trick points; 0 when the level goal was missed. */
   trick: number;
   air: number;
   height: number;
   gas: number;
-  /** Landing-grade multiplier applied to the sum (perfect 2, great 1.5, good 1). */
+  /**
+   * Landing-grade multiplier applied to the sum (perfect 2, great 1.5, good 1);
+   * 1 when the level goal was missed.
+   */
   multiplier: number;
+  /** (trick + air + height + gas) × multiplier, rounded. */
   total: number;
 }
 
@@ -248,9 +257,13 @@ export type PhysicsEvent =
   | {
       type: "crash";
       position: Vec3;
-      /** Impact speed into the surface or obstacle (m/s). */
+      /**
+       * Impact speed (m/s): the speed into the surface it touched down on, or its full
+       * speed when it ran into an obstacle.
+       */
       impact: number;
       reason: CrashReason;
+      /** Label of what it ran into (reason "obstacle" only), e.g. "Semi" or "Curl". */
       obstacle?: string;
     }
   /** The wreck hit something while tumbling. intensity 0..1. */

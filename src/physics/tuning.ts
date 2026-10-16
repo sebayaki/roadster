@@ -186,7 +186,7 @@ export const AUTOPILOT = {
   kickflip: {
     /** Upside down right above the Semi, like the unveil photos. */
     clean: { turns: -1, speed: 70 / 3.6, liftX: -28, liftVy: 9 },
-    /** A higher hop (~13 m) leaves time for two rolls. */
+    /** A higher hop (~14 m) leaves time for two rolls. */
     double: { turns: -2, speed: 70 / 3.6, liftX: -32, liftVy: 13 },
   },
   /** Speed controller gain (throttle per m/s of error). */
@@ -211,7 +211,7 @@ export const AUTOPILOT = {
   burnOff: 0.35,
 } as const;
 
-/** Score table (see the design spec §2.5). All values are points. */
+/** Score table. All values are points. */
 export const SCORING = {
   /** Per completed turn on the pitch axis (backflip / frontflip). */
   pitchTurn: 1000,
