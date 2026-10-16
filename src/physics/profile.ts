@@ -11,11 +11,11 @@ const STEP = 0.05;
 
 /**
  * Builds a riding-surface curve by integrating curvature along arc length,
- * starting at (startX, startY) heading +x. Sampling interpolates a dense table.
+ * starting at (startX, 0) on the ground plane heading +x. Sampling interpolates a
+ * dense table.
  */
 export function createProfile(opts: {
   startX: number;
-  startY?: number;
   segments: CurvatureSegment[];
   /** Arc length where the flat runway ends (defaults to the first segment's length). */
   rampStart?: number;
@@ -41,7 +41,7 @@ export function createProfile(opts: {
   };
 
   let x = opts.startX;
-  let y = opts.startY ?? 0;
+  let y = 0;
   let angle = 0;
   xs[0] = x;
   ys[0] = y;
