@@ -8,80 +8,84 @@ const RUNWAY_AHEAD = 400;
 export const STAGE_HEIGHT = 0.22;
 const GAP = 0.8;
 
+/** Bumper-to-bumper length, body width without mirrors and height of a vehicle (m). */
+export interface VehicleDims {
+  length: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Size of each lineup vehicle (parked across the path: width along x, length
+ * along z). The vehicle models (render/vehicles) are built at these sizes.
+ */
+export const LINEUP_DIMS: Readonly<Record<VehicleKind, VehicleDims>> = {
+  model3: { length: 4.72, width: 1.85, height: 1.44 },
+  modelY: { length: 4.79, width: 1.92, height: 1.62 },
+  semi: { length: 7.5, width: 2.6, height: 4.0 },
+  cybertruck: { length: 5.68, width: 2.03, height: 1.79 },
+  cybercab: { length: 4.3, width: 1.95, height: 1.35 },
+};
+
 interface LineupEntry {
   kind: VehicleKind;
   label: string;
-  /** Body width across the path, height and length (m). */
-  width: number;
-  height: number;
-  length: number;
   color: number;
 }
 
 /** Left to right as seen from the audience side (+z), i.e. in order of increasing x. */
 const LINEUP: LineupEntry[] = [
-  {
-    kind: "model3",
-    label: "Model 3",
-    width: 1.85,
-    height: 1.44,
-    length: 4.72,
-    color: 0x1d2f7a,
-  },
-  {
-    kind: "modelY",
-    label: "Model Y",
-    width: 1.92,
-    height: 1.62,
-    length: 4.79,
-    color: 0x8e0f16,
-  },
-  {
-    kind: "semi",
-    label: "Semi",
-    width: 2.6,
-    height: 4.0,
-    length: 7.5,
-    color: 0xf1f2f3,
-  },
-  {
-    kind: "cybertruck",
-    label: "Cybertruck",
-    width: 2.03,
-    height: 1.79,
-    length: 5.68,
-    color: 0xb9bdc1,
-  },
-  {
-    kind: "cybercab",
-    label: "Cybercab",
-    width: 1.95,
-    height: 1.35,
-    length: 4.3,
-    color: 0xcdb27a,
-  },
+  { kind: "model3", label: "Model 3", color: 0x1d2f7a },
+  { kind: "modelY", label: "Model Y", color: 0x8e0f16 },
+  { kind: "semi", label: "Semi", color: 0xf1f2f3 },
+  { kind: "cybertruck", label: "Cybertruck", color: 0xb9bdc1 },
+  { kind: "cybercab", label: "Cybercab", color: 0xcdb27a },
 ];
 
 const lineupWidth =
-  LINEUP.reduce((sum, v) => sum + v.width, 0) + GAP * (LINEUP.length - 1);
+  LINEUP.reduce((sum, v) => sum + LINEUP_DIMS[v.kind].width, 0) +
+  GAP * (LINEUP.length - 1);
 const STAGE_MARGIN = 0.5;
 export const LINEUP_START_X = -lineupWidth / 2;
 export const LINEUP_END_X = lineupWidth / 2;
 
-/** Front-view outline: vertical flanks up to the belt line, then the greenhouse tapers to the roof. */
-function vehiclePolygon(x: number, v: LineupEntry): Array<[number, number]> {
-  const base = STAGE_HEIGHT + 0.12;
-  const top = STAGE_HEIGHT + v.height;
-  const half = v.width / 2;
-  const belt = STAGE_HEIGHT + v.height * (v.kind === "semi" ? 0.9 : 0.58);
-  const roofHalf = v.kind === "semi" ? half * 0.86 : half * 0.68;
+/** Height above the stand plane where a vehicle's collision outline starts (m). */
+export const OUTLINE_BASE = 0.12;
+
+/**
+ * Front-view collision outline rule of a lineup vehicle: vertical flanks (half
+ * width `half`) up to the `belt` line, then the greenhouse tapers to `roofHalf`
+ * at the roof (`top`). Heights are above the stand plane (m).
+ */
+export function vehicleOutline(kind: VehicleKind): {
+  half: number;
+  belt: number;
+  roofHalf: number;
+  top: number;
+} {
+  const { width, height } = LINEUP_DIMS[kind];
+  const half = width / 2;
+  const semi = kind === "semi";
+  return {
+    half,
+    belt: height * (semi ? 0.9 : 0.58),
+    roofHalf: half * (semi ? 0.86 : 0.68),
+    top: height,
+  };
+}
+
+function vehiclePolygon(x: number, kind: VehicleKind): Array<[number, number]> {
+  const { half, belt, roofHalf, top } = vehicleOutline(kind);
+  const baseY = STAGE_HEIGHT + OUTLINE_BASE;
+  const beltY = STAGE_HEIGHT + belt;
+  const topY = STAGE_HEIGHT + top;
   return [
-    [x - half, base],
-    [x + half, base],
-    [x + half, belt],
-    [x + roofHalf, top],
-    [x - roofHalf, top],
-    [x - half, belt],
+    [x - half, baseY],
+    [x + half, baseY],
+    [x + half, beltY],
+    [x + roofHalf, topY],
+    [x - roofHalf, topY],
+    [x - half, beltY],
   ];
 }
 
@@ -110,7 +114,8 @@ function buildObstacles(): Obstacle[] {
   });
   let cursor = LINEUP_START_X;
   for (const v of LINEUP) {
-    const x = cursor + v.width / 2;
+    const d = LINEUP_DIMS[v.kind];
+    const x = cursor + d.width / 2;
     out.push({
       id: v.kind,
       kind: v.kind,
@@ -118,15 +123,15 @@ function buildObstacles(): Obstacle[] {
       x,
       z: 0,
       baseY: STAGE_HEIGHT,
-      sizeX: v.width,
-      sizeY: v.height,
-      sizeZ: v.length,
+      sizeX: d.width,
+      sizeY: d.height,
+      sizeZ: d.length,
       // Parked side by side, noses pointing at the audience (+z).
       yaw: -Math.PI / 2,
-      polygon: vehiclePolygon(x, v),
+      polygon: vehiclePolygon(x, v.kind),
       color: v.color,
     });
-    cursor += v.width + GAP;
+    cursor += d.width + GAP;
   }
   return out;
 }

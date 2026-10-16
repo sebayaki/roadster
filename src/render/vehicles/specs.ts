@@ -1,23 +1,11 @@
 import type { Obstacle, VehicleKind } from "@/core/types";
-
-/** Bumper-to-bumper length (model x), body width without mirrors (model z) and height (m). */
-export interface VehicleDims {
-  length: number;
-  width: number;
-  height: number;
-}
+import { LINEUP_DIMS, OUTLINE_BASE, vehicleOutline } from "@/levels/kickflip";
 
 /**
- * Sizes the models are designed at. They match the lineup data in
- * `levels/kickflip.ts`; `buildLineup` rescales to the obstacle box if that data changes.
+ * Sizes the models are built at (length along model x, width along z): the
+ * lineup's. `buildLineup` scales each model to its obstacle box.
  */
-export const VEHICLE_DIMS: Readonly<Record<VehicleKind, VehicleDims>> = {
-  model3: { length: 4.72, width: 1.85, height: 1.44 },
-  modelY: { length: 4.79, width: 1.92, height: 1.62 },
-  semi: { length: 7.5, width: 2.6, height: 4.0 },
-  cybertruck: { length: 5.68, width: 2.03, height: 1.79 },
-  cybercab: { length: 4.3, width: 1.95, height: 1.35 },
-};
+export const VEHICLE_DIMS = LINEUP_DIMS;
 
 /**
  * Largest allowed half-width (|z|) of the body at model height y (m above the
@@ -26,22 +14,13 @@ export const VEHICLE_DIMS: Readonly<Record<VehicleKind, VehicleDims>> = {
  */
 export type Envelope = (y: number) => number;
 
-/** Height above the stand plane below which the collision polygon does not reach. */
-const POLY_BASE = 0.12;
-
-/**
- * Envelope following the same rule as the lineup collision outline: vertical
- * flanks up to the belt line, then the greenhouse tapers to the roof.
- */
+/** Envelope following the lineup's collision outline rule (see vehicleOutline). */
 export function ruleEnvelope(kind: VehicleKind): Envelope {
-  const d = VEHICLE_DIMS[kind];
-  const half = d.width / 2;
-  const belt = d.height * (kind === "semi" ? 0.9 : 0.58);
-  const roofHalf = half * (kind === "semi" ? 0.86 : 0.68);
+  const { half, belt, roofHalf, top } = vehicleOutline(kind);
   return (y) =>
     y <= belt
       ? half
-      : half + (roofHalf - half) * Math.min(1, (y - belt) / (d.height - belt));
+      : half + (roofHalf - half) * Math.min(1, (y - belt) / (top - belt));
 }
 
 /**
@@ -59,7 +38,8 @@ export function polygonEnvelope(
   const poly = o.polygon;
   return (y) => {
     const wy = o.baseY + y * scaleY;
-    if (y < POLY_BASE) return Infinity;
+    // The collision polygon does not reach below its base.
+    if (y < OUTLINE_BASE) return Infinity;
     let lo = Infinity;
     let hi = -Infinity;
     for (let i = 0; i < poly.length; i++) {
