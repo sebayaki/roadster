@@ -290,8 +290,8 @@ export class CameraRig {
 
   /** Top edge of the in-run HUD's bottom strip (NDC), measured every frame. */
   private hudTop = -1;
-  private readonly coarsePointer: MediaQueryList | null =
-    typeof matchMedia === "function" ? matchMedia("(pointer: coarse)") : null;
+  /** The App shows the touch HUD (Input.isTouch), whose bottom strip differs (see HUD_BOTTOM_PX). */
+  private readonly touchHud: boolean;
 
   private readonly lastCarPos = new THREE.Vector3();
   /** Last applied pose, before shake. */
@@ -302,8 +302,9 @@ export class CameraRig {
   private readonly poseC = createPose();
   private readonly blendPose = createPose();
 
-  constructor(camera: THREE.PerspectiveCamera) {
+  constructor(camera: THREE.PerspectiveCamera, touchHud = false) {
     this.camera = camera;
+    this.touchHud = touchHud;
   }
 
   setLevel(level: LevelDef): void {
@@ -726,8 +727,7 @@ export class CameraRig {
       this.hudTop = -1;
       return;
     }
-    const touch = this.coarsePointer !== null && this.coarsePointer.matches;
-    const px = !touch
+    const px = !this.touchHud
       ? HUD_BOTTOM_PX
       : h > window.innerWidth
         ? HUD_BOTTOM_PX_TOUCH_PORTRAIT

@@ -55,7 +55,7 @@ export class Input {
     thrust: false,
     spin: 0,
   };
-  /** True when the device has a coarse pointer (phone / tablet). */
+  /** Touch controls and the touch HUD are in use: a coarse pointer (phone / tablet), or `?touch=1|0`. */
   readonly isTouch: boolean;
 
   private queue: InputAction[] = [];

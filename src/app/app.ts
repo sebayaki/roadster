@@ -111,7 +111,7 @@ export class App {
     const { scene, camera, quality } = this.renderer;
     this.hud = new Hud(uiRoot);
     this.input = new Input(uiRoot);
-    this.cameraRig = new CameraRig(camera);
+    this.cameraRig = new CameraRig(camera, this.input.isTouch);
     this.roadster = new RoadsterModel(quality);
     scene.add(this.roadster.root);
     this.fx = new FxSystem(scene, quality);
