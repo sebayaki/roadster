@@ -10,15 +10,9 @@ import { CameraRig } from "@/render/camera-rig";
 import { FxSystem } from "@/render/fx";
 import type { RoadsterModel } from "@/render/roadster-model";
 
-// The rig sizes the in-run HUD strip from the window and the pointer type.
+// The rig sizes the in-run HUD strip from the window and whether the touch HUD is shown.
 const view = { innerWidth: 1280, innerHeight: 720 };
-let coarse = false;
 vi.stubGlobal("window", view);
-vi.stubGlobal("matchMedia", () => ({
-  get matches() {
-    return coarse;
-  },
-}));
 afterAll(() => {
   vi.unstubAllGlobals();
 });
@@ -30,10 +24,9 @@ const GAS: Controls = { throttle: 1, brake: 0, thrust: false, spin: 0 };
 function stage(width: number, height: number, touch = false) {
   view.innerWidth = width;
   view.innerHeight = height;
-  coarse = touch;
   const camera = new THREE.PerspectiveCamera(55, width / Math.max(1, height));
   const scene = new THREE.Scene();
-  const rig = new CameraRig(camera);
+  const rig = new CameraRig(camera, touch);
   const fx = new FxSystem(scene, "high");
   const root = new THREE.Group();
   const anchors = (list: ReadonlyArray<readonly [number, number, number]>) =>

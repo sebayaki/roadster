@@ -81,7 +81,7 @@ stay in your browser.
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `index.html`, `src/main.ts`   | Page shell with the meta and link-preview tags; the entry point that starts the `App`                       |
 | `src/app/`                    | Game director: run state machine and frame loop (`app.ts`), event routing, attract demo, debug hooks        |
-| `src/core/`                   | Shared types, the Roadster's dimensions (`car-spec.ts`), math, settings and best-score storage              |
+| `src/core/`                   | Shared types, the Roadster's dimensions (`car-spec.ts`), the default car snapshot, math, saved settings     |
 | `src/levels/`                 | The two stunts as data: the Curl's profile, the lineup and its collision outlines, speed bands              |
 | `src/physics/`                | Car physics, track and collision queries, wreck rigid body, scoring, tunables, autopilot                    |
 | `src/render/`                 | Renderer, camera rig, the Curl (`ramp-model.ts`), textures, environment light per material (`env-scale.ts`) |
@@ -202,13 +202,21 @@ npm run snap -- "http://localhost:5173/dev/roadster.html?view=rear34&freeze=1" s
 - `release`: simulated players with human reaction delays let go of the spin anywhere from 80°
   early to 10° late and still land; half a turn off still wrecks.
 - `physics`, `profile`, `determinism`: driving, braking and reverse, thrust and gas, the run flow,
-  wrecks, the track shapes, and identical replays of the same inputs and jittery frame times.
-- `scoring`, `input-mapping`, `storage`, `ui-format`: trick names, grades and points; key and
-  gamepad bindings; settings and best scores, also without localStorage; HUD text and share links.
+  wrecks, `reset()`, the track shapes, and identical replays of the same inputs and jittery frame
+  times.
+- `scoring`: trick names, landing grades and points.
+- `models`, `venue`: the Roadster matches the car's collision box, every lineup vehicle stays
+  inside its collision outline, and the venue keeps its light budget per quality tier and frees
+  what it owns.
+- `fx-camera`, `camera-hud`: whole runs through the camera rig and the particle FX on desktop and
+  phone screens, and the camera keeps the car clear of the HUD that is shown.
+- `app`, `input-mapping`, `ui-format`, `ui-press`, `storage`: the run flow and attract demo, the
+  audio mix, key and gamepad bindings, HUD text and share links, second-finger taps on HUD
+  buttons, and settings and best scores, also without localStorage.
 
 The tests are what prove both stunts stay landable, so run them after any change to
-`src/physics/tuning.ts` or the levels. Rendering and sound are checked by eye and ear on the dev
-pages, with `npm run snap` and the audio self-check.
+`src/physics/tuning.ts` or the levels. Looks and sound are checked on the dev pages, with
+`npm run snap` and the audio self-check (`/dev/audio.html?selfcheck=1`).
 
 ## Social images
 
