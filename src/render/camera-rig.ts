@@ -42,7 +42,8 @@ const LEAD_MAX = 18;
  * In-run side views (m from the stunt plane), in front of the near-side props:
  * the stage light rigs at z ≈ 30 beside the lineup, the floodlight towers at
  * z ≥ 66 along the backflip runway. The backflip view fits the width and pans
- * within its base distance; only the Curl's height pushes it further out.
+ * within its base distance; only the height it keeps in frame (the Curl's lip
+ * or the flying car) pushes it further out.
  */
 const BACKFLIP_SIDE_DISTANCE = 42;
 const BACKFLIP_SIDE_MAX = 58;
