@@ -144,7 +144,6 @@ export function buildCybertruck(
   lightBand(b, SLOT.light, pts, "front", 1.056, 1.084, 0, 1.0);
   lightBand(b, SLOT.tail, pts, "rear", 1.212, 1.244, 0, 0.98);
 
-  const segments = high ? 28 : 14;
   for (const ax of AXLES) {
     const ceiling = ARCH_TOP - 0.02;
     const inner = TRACK_HALF - TIRE_WIDTH / 2 - 0.03;
@@ -165,7 +164,7 @@ export function buildCybertruck(
           rim: 0.6,
           style: "aero",
         },
-        segments
+        quality
       );
     }
   }

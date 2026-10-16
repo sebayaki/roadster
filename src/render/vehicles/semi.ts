@@ -270,12 +270,11 @@ export function buildSemi(
 
   // Front wheel well, then wheels (drive axles carry duals, drawn as one wide tire).
   b.box(SLOT.trim, [FRONT_AXLE, 0.79, 0], [1.16, 0.56, 1.8]);
-  const segments = high ? 28 : 14;
   const wheel = (x: number, z: number, width: number) =>
     addWheel(
       b,
       { x, y: TIRE, z, radius: TIRE, width, rim: 0.56, style: "truck" },
-      segments
+      quality
     );
   for (const side of [-1, 1]) {
     wheel(FRONT_AXLE, side * 1.075, 0.31);

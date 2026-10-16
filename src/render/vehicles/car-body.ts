@@ -205,7 +205,6 @@ export function carBody(
   });
 
   // Dark wheel wells hide the view through the arches; then the wheels.
-  const segments = high ? 28 : 14;
   for (const ax of d.axles) {
     const floor = d.yb(ax);
     const ceiling = d.tire + R - 0.015;
@@ -227,7 +226,7 @@ export function carBody(
           rim: d.rim,
           style: d.wheelStyle,
         },
-        segments
+        quality
       );
     }
   }

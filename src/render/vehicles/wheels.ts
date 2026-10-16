@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { Quality } from "@/core/types";
 import { type MeshBuilder, SLOT, type Slot } from "./geometry";
 
 /**
@@ -30,8 +31,11 @@ const RINGS: Record<WheelStyle, [Slot, Slot, Slot]> = {
   truck: [SLOT.rim, SLOT.rim, SLOT.trim],
 };
 
+/** Lathe segments around the axle per quality tier. */
+const SEGMENTS: Readonly<Record<Quality, number>> = { high: 28, low: 14 };
+
 /** Tire, rim dish and spokes of one wheel, merged into the builder's slots. */
-export function addWheel(b: MeshBuilder, w: WheelDef, segments: number): void {
+export function addWheel(b: MeshBuilder, w: WheelDef, quality: Quality): void {
   const place = new THREE.Matrix4().compose(
     new THREE.Vector3(w.x, w.y, w.z),
     new THREE.Quaternion().setFromAxisAngle(
@@ -47,7 +51,7 @@ export function addWheel(b: MeshBuilder, w: WheelDef, segments: number): void {
   const lathe = (slot: Slot, pts: Profile) => {
     const geo = new THREE.LatheGeometry(
       pts.map(([r, a]) => new THREE.Vector2(r, a)),
-      segments
+      SEGMENTS[quality]
     );
     b.geometry(slot, geo, axle);
     geo.dispose();
