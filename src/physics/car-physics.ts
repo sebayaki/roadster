@@ -565,9 +565,14 @@ export class CarPhysics {
   /** Emits `flip` when the trick angle on `axis` completes another full turn. */
   private countFlips(axis: SpinAxis, angle: number): void {
     const turns = Math.floor((Math.abs(angle) + T.flipTolerance) / TAU);
-    if (turns <= this.flips[axis]) return;
-    this.flips[axis] = turns;
-    this.events.push({ type: "flip", axis, turns: angle > 0 ? turns : -turns });
+    if (turns > this.flips[axis]) {
+      this.flips[axis] = turns;
+      this.events.push({
+        type: "flip",
+        axis,
+        turns: angle > 0 ? turns : -turns,
+      });
+    }
   }
 
   /** World x-y of every collision point for the current pose (rot must be set). */
