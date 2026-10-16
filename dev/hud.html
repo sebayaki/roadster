@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>HUD preview — RDSTR Stunts</title>
+    <style>
+      /* CSS stand-in for the night venue when the 3D scenery is not available (?bg=css). */
+      body.bg-css {
+        background:
+          radial-gradient(
+            38% 22% at 72% 30%,
+            rgba(220, 225, 235, 0.32),
+            transparent 70%
+          ),
+          radial-gradient(
+            12% 8% at 18% 62%,
+            rgba(255, 255, 255, 0.5),
+            transparent 70%
+          ),
+          radial-gradient(
+            60% 12% at 50% 72%,
+            rgba(255, 30, 30, 0.22),
+            transparent 70%
+          ),
+          linear-gradient(
+            180deg,
+            #040508 0%,
+            #0b0d12 52%,
+            #1a1c22 66%,
+            #0d0e11 100%
+          );
+      }
+      /* Vite's error overlay would cover the HUD in snapshots of other modules' work in progress. */
+      vite-error-overlay {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui"></div>
+    <script type="module" src="./hud.ts"></script>
+  </body>
+</html>

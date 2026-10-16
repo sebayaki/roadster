@@ -1,0 +1,246 @@
+/* On-screen touch controls (rendered by src/input/touch-controls.ts inside #ui). */
+.tc {
+  --tc-edge: 16px;
+  --tc-gap: 12px;
+  --tc-spin: 72px;
+  --tc-gas-w: 80px;
+  --tc-gas-h: 128px;
+  --tc-brake-w: 70px;
+  --tc-brake-h: 92px;
+  --tc-thrust: 84px;
+  --tc-accent: var(--hud-accent, #ff2a2a);
+  --tc-gas-tint: var(--hud-gas, #d4ebff);
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  font-family:
+    Inter,
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  color: #f4f5f6;
+}
+
+.tc[hidden] {
+  display: none;
+}
+
+.tc-left,
+.tc-right {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tc-edge));
+  /* Transform only: an opacity fade here would cut the buttons' backdrop blur. */
+  animation: tc-in 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.tc-left {
+  left: calc(env(safe-area-inset-left, 0px) + var(--tc-edge));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.tc-pair {
+  display: flex;
+  gap: var(--tc-gap);
+}
+
+.tc-caption {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  padding-left: 0.34em;
+  color: rgba(244, 245, 246, 0.62);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+.tc-right {
+  right: calc(env(safe-area-inset-right, 0px) + var(--tc-edge));
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    ". thrust"
+    "brake gas";
+  align-items: end;
+  justify-items: center;
+  gap: var(--tc-gap);
+}
+
+.tc-btn {
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  /* No backdrop blur: these sit over the moving scene and would re-blur every frame on phones. */
+  background-color: rgba(14, 15, 19, 0.62);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 26px -14px rgba(0, 0, 0, 0.9);
+  transition:
+    transform 90ms ease-out,
+    background-color 90ms ease-out,
+    border-color 90ms ease-out,
+    box-shadow 120ms ease-out;
+}
+
+.tc-btn.is-pressed {
+  transform: scale(0.93);
+  border-color: rgba(255, 255, 255, 0.55);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.tc-icon {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.tc-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tc-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  padding-left: 0.24em;
+}
+
+.tc-spin {
+  width: var(--tc-spin);
+  height: var(--tc-spin);
+  border-radius: 50%;
+}
+
+.tc-pedal {
+  justify-content: flex-end;
+  padding-bottom: 12px;
+  border-radius: 16px;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07) 0 2px,
+      transparent 2px 10px
+    );
+  background-size:
+    100% 100%,
+    calc(100% - 24px) calc(100% - 46px);
+  background-position:
+    0 0,
+    12px 12px;
+  background-repeat: no-repeat;
+}
+
+.tc-gas {
+  grid-area: gas;
+  width: var(--tc-gas-w);
+  height: var(--tc-gas-h);
+}
+
+.tc-brake {
+  grid-area: brake;
+  width: var(--tc-brake-w);
+  height: var(--tc-brake-h);
+}
+
+.tc-gas.is-pressed {
+  border-color: var(--tc-accent);
+  background-color: rgba(255, 42, 42, 0.24);
+  box-shadow:
+    inset 0 0 0 1px var(--tc-accent),
+    0 0 26px rgba(255, 42, 42, 0.45);
+}
+
+.tc-thrust {
+  grid-area: thrust;
+  width: var(--tc-thrust);
+  height: var(--tc-thrust);
+  border-radius: 50%;
+  gap: 2px;
+  border-color: rgba(212, 235, 255, 0.36);
+  color: var(--tc-gas-tint);
+}
+
+.tc-thrust .tc-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.tc-thrust .tc-label {
+  font-size: 9px;
+}
+
+.tc-thrust.is-pressed {
+  border-color: var(--tc-gas-tint);
+  background-color: rgba(212, 235, 255, 0.26);
+  box-shadow:
+    inset 0 0 0 1px var(--tc-gas-tint),
+    0 0 30px rgba(190, 225, 255, 0.55);
+}
+
+/* Phone portrait: narrower thumbs zone. */
+@media (orientation: portrait) {
+  .tc {
+    --tc-edge: 14px;
+    --tc-gap: 10px;
+    --tc-spin: 66px;
+    --tc-gas-w: 72px;
+    --tc-gas-h: 116px;
+    --tc-brake-w: 64px;
+    --tc-brake-h: 86px;
+    --tc-thrust: 76px;
+  }
+}
+
+@media (max-width: 370px) {
+  .tc {
+    --tc-gap: 8px;
+    --tc-spin: 62px;
+    --tc-gas-w: 66px;
+    --tc-brake-w: 60px;
+  }
+}
+
+@keyframes tc-in {
+  from {
+    transform: translateY(calc(100% + 24px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-left,
+  .tc-right {
+    animation: none;
+  }
+  .tc-btn {
+    transition: none;
+  }
+}

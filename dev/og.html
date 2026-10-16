@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>RDSTR Stunts — social preview</title>
+    <style>
+      #og {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        font-family:
+          Inter,
+          "SF Pro Display",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        color: #f4f5f6;
+        background: linear-gradient(
+          90deg,
+          rgba(4, 5, 8, 0.92) 0%,
+          rgba(4, 5, 8, 0.7) 30%,
+          rgba(4, 5, 8, 0) 58%
+        );
+      }
+      #og .copy {
+        position: absolute;
+        left: 64px;
+        top: 70px;
+        bottom: 62px;
+        display: flex;
+        flex-direction: column;
+      }
+      #og .bar {
+        width: 46px;
+        height: 4px;
+        background: #ff2a2a;
+        box-shadow: 0 0 18px rgba(255, 42, 42, 0.6);
+      }
+      #og h1 {
+        margin: 26px 0 0;
+        font-size: 66px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0.32em;
+        white-space: nowrap;
+      }
+      #og h1 span {
+        font-weight: 300;
+        color: rgba(244, 245, 246, 0.72);
+      }
+      #og .kicker {
+        margin: 28px 0 0;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.34em;
+        color: #ff4545;
+      }
+      #og .sub {
+        margin: 12px 0 0;
+        font-size: 25px;
+        font-weight: 400;
+        color: rgba(244, 245, 246, 0.86);
+      }
+      #og .cta {
+        margin-top: auto;
+        align-self: flex-start;
+        padding: 15px 26px;
+        border-radius: 999px;
+        background: #ff2a2a;
+        box-shadow: 0 14px 40px -12px rgba(255, 42, 42, 0.8);
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+      }
+      #og .url {
+        margin: 18px 0 0;
+        font-size: 20px;
+        letter-spacing: 0.08em;
+        color: rgba(244, 245, 246, 0.8);
+      }
+      #og .fine {
+        position: absolute;
+        right: 28px;
+        bottom: 22px;
+        margin: 0;
+        font-size: 14px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(244, 245, 246, 0.45);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="og">
+      <div class="copy">
+        <div class="bar"></div>
+        <h1>RDSTR <span>STUNTS</span></h1>
+        <p class="kicker">BACKFLIP · KICKFLIP</p>
+        <p class="sub">Fly the new Roadster while you wait.</p>
+        <div class="cta">PLAY FREE IN YOUR BROWSER</div>
+        <p class="url">roadster.sebayaki.com</p>
+      </div>
+      <p class="fine">Unofficial fan game</p>
+    </div>
+    <script type="module" src="./og.ts"></script>
+  </body>
+</html>
