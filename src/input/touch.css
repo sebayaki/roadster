@@ -244,3 +244,85 @@
     transition: none;
   }
 }
+
+/*
+ * Phones (portrait, or landscape with a short screen): smaller controls so the
+ * scene stays visible. GAS spans both rows; THRUST sits above BRAKE beside it,
+ * so the right thumb slides between them.
+ */
+@media (orientation: portrait), (max-height: 520px) {
+  .tc {
+    --tc-edge: 12px;
+    --tc-gap: 8px;
+    --tc-spin: 56px;
+    --tc-thrust: 56px;
+    --tc-brake-w: 56px;
+    --tc-brake-h: 56px;
+    --tc-gas-w: 60px;
+    --tc-gas-h: calc(var(--tc-thrust) + var(--tc-gap) + var(--tc-brake-h));
+  }
+
+  .tc-right {
+    grid-template-areas:
+      "thrust gas"
+      "brake gas";
+  }
+
+  .tc-left {
+    gap: 6px;
+  }
+
+  .tc-caption {
+    font-size: 9px;
+  }
+
+  .tc-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tc-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    padding-left: 0.18em;
+  }
+
+  .tc-pedal {
+    padding-bottom: 9px;
+    border-radius: 14px;
+    background-size:
+      100% 100%,
+      calc(100% - 20px) calc(100% - 38px);
+    background-position:
+      0 0,
+      10px 10px;
+  }
+
+  .tc-brake {
+    justify-content: center;
+    padding-bottom: 0;
+    background-size:
+      100% 100%,
+      0 0;
+  }
+
+  .tc-thrust .tc-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .tc-thrust .tc-label {
+    font-size: 7.5px;
+  }
+}
+
+/* Very short screens (in-app browsers, small phones). */
+@media (orientation: portrait) and (max-height: 700px), (max-height: 420px) {
+  .tc {
+    --tc-spin: 52px;
+    --tc-thrust: 52px;
+    --tc-brake-w: 52px;
+    --tc-brake-h: 52px;
+    --tc-gas-w: 56px;
+  }
+}

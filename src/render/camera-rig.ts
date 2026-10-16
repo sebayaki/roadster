@@ -75,12 +75,14 @@ const ATTRACT_TOP_NDC_LINEUP = 0.7;
 const RESULT_SCREEN_X = 0.7;
 
 /**
- * Bottom strip covered by the in-run HUD's speed / gas cluster (px); on touch
- * phones in portrait it sits higher, above the thumbs. In-run shots keep the
- * car and the ground line above it, which matters on short screens.
+ * Bottom strip the in-run HUD covers under the car (px). In-run shots keep the
+ * car and the ground line above it, which matters on short screens. Desktop:
+ * the speed / gas cluster. Touch portrait: the thumb controls (the slim speed
+ * bar moves to the top). Touch landscape: only the slim bar between the thumbs.
  */
 const HUD_BOTTOM_PX = 160;
-const HUD_BOTTOM_PX_TOUCH_PORTRAIT = 340;
+const HUD_BOTTOM_PX_TOUCH_PORTRAIT = 150;
+const HUD_BOTTOM_PX_TOUCH_LANDSCAPE = 72;
 /** Where the bottom of the car sits in the chase / ready shots (NDC y). */
 const CHASE_CAR_BOTTOM_NDC = -0.37;
 /** Gap kept between the HUD strip and the car or the ground line (NDC). */
@@ -546,7 +548,14 @@ export class CameraRig {
   private backflipSide(car: CarSnapshot, keepLip: boolean): void {
     const s = this.shot;
     const p = car.position;
-    const lipW = keepLip || car.onRamp ? 1 : smoothstep(-45, -15, p.x);
+    // A portrait frame is too narrow to show the lip and the landing zone
+    // together; once the car is off the ramp it frames the car (closer) instead.
+    const lipW =
+      keepLip || car.onRamp
+        ? 1
+        : this.camera.aspect < 1
+          ? 0
+          : smoothstep(-45, -15, p.x);
     this.carWindow(car, LEAD_TIME);
     s.minX = Math.min(s.keepMin, this.focusX - 6);
     s.maxX = Math.max(s.keepMax, this.rampMaxX + 4);
@@ -726,11 +735,12 @@ export class CameraRig {
       this.hudTop = -1;
       return;
     }
-    const portraitTouch =
-      this.coarsePointer !== null &&
-      this.coarsePointer.matches &&
-      h > window.innerWidth;
-    const px = portraitTouch ? HUD_BOTTOM_PX_TOUCH_PORTRAIT : HUD_BOTTOM_PX;
+    const touch = this.coarsePointer !== null && this.coarsePointer.matches;
+    const px = !touch
+      ? HUD_BOTTOM_PX
+      : h > window.innerWidth
+        ? HUD_BOTTOM_PX_TOUCH_PORTRAIT
+        : HUD_BOTTOM_PX_TOUCH_LANDSCAPE;
     this.hudTop = Math.min(0, -1 + (2 * px) / h);
   }
 

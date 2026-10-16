@@ -2499,3 +2499,228 @@ body {
     animation: hud-pop-out 0.3s ease-in calc(var(--life) - 0.3s) forwards !important;
   }
 }
+
+/* ------------------------------------------------------------ compact touch */
+/*
+ * Phones (portrait, or landscape with a short screen): keep the scene visible.
+ * The speed / gas readout collapses into one slim bar, the airborne panel into
+ * a small pill, and the title row shrinks. The bottom corners stay with the
+ * on-screen controls (src/input/touch.css).
+ */
+@media (orientation: portrait), (max-height: 520px) {
+  .hud-run.is-touch {
+    --edge: 12px;
+  }
+
+  .hud-run.is-touch .run-name {
+    font-size: 14px;
+    letter-spacing: 0.24em;
+  }
+
+  .hud-run.is-touch .run-venue {
+    margin-top: 4px;
+    font-size: 8.5px;
+  }
+
+  .hud-run.is-touch .run-actions {
+    gap: 8px;
+  }
+
+  .hud-run.is-touch .run-actions .hud-icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* One row: speed digits, speed bar with the target band, gas. */
+  .hud-run.is-touch .run-cluster {
+    grid-template-columns: minmax(0, 1fr) 1px auto;
+    align-items: center;
+    gap: 0 12px;
+    min-width: 0;
+    padding: 7px 12px;
+    border-radius: 14px;
+  }
+
+  .hud-run.is-touch .run-speed {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hud-run.is-touch .speed-row {
+    flex: none;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .hud-run.is-touch .speed-val {
+    min-width: 2.1ch;
+    font-size: 24px;
+    line-height: 1;
+    text-align: right;
+  }
+
+  .hud-run.is-touch .speed-meta {
+    gap: 2px;
+  }
+
+  .hud-run.is-touch .speed-unit {
+    font-size: 8.5px;
+    letter-spacing: 0.16em;
+  }
+
+  .hud-run.is-touch .speed-bar {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hud-run.is-touch .speed-target {
+    display: none;
+  }
+
+  .hud-run.is-touch .run-gas {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 88px;
+  }
+
+  .hud-run.is-touch .gas-row {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0;
+  }
+
+  .hud-run.is-touch .gas-row .hud-label {
+    display: none;
+  }
+
+  .hud-run.is-touch .gas-num {
+    font-size: 15px;
+  }
+
+  .hud-run.is-touch .gas-pct {
+    font-size: 9px;
+  }
+
+  .hud-run.is-touch .gas-bar {
+    flex: 1;
+    min-width: 0;
+    height: 4px;
+  }
+
+  /* Airborne pill: small dial, degrees, height and air time. */
+  .hud-run.is-touch .run-air {
+    left: calc(var(--safe-l) + var(--edge));
+    right: auto;
+    gap: 8px;
+    padding: 6px 12px 6px 6px;
+    border-radius: 14px;
+  }
+
+  .hud-run.is-touch .dial {
+    width: 46px;
+    height: 46px;
+  }
+
+  .hud-run.is-touch .air-side {
+    gap: 3px;
+  }
+
+  .hud-run.is-touch .dial-deg {
+    font-size: 17px;
+  }
+
+  .hud-run.is-touch .dial-axis {
+    font-size: 8px;
+  }
+
+  .hud-run.is-touch .dial-turns {
+    font-size: 10px;
+  }
+
+  .hud-run.is-touch .air-stats {
+    gap: 10px;
+    padding-top: 3px;
+  }
+
+  .hud-run.is-touch .air-stat .hud-label {
+    font-size: 7.5px;
+  }
+
+  .hud-run.is-touch .air-num {
+    font-size: 12px;
+  }
+
+  .hud-run.is-touch .air-unit {
+    font-size: 8.5px;
+  }
+
+  .hud-run.is-touch .run-hint {
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+
+  .hud-run.is-touch .run-hint .hud-key {
+    height: 20px;
+    min-width: 22px;
+    font-size: 9px;
+  }
+}
+
+/* Portrait phones: the slim bar sits under the title row, the air pill under it. */
+@media (orientation: portrait) {
+  .hud-run.is-touch .run-cluster {
+    top: calc(var(--safe-t) + var(--edge) + 48px);
+    bottom: auto;
+    left: calc(var(--safe-l) + var(--edge));
+    right: calc(var(--safe-r) + var(--edge));
+    width: auto;
+    transform: none;
+  }
+
+  .hud-run.is-touch.is-entering .run-cluster {
+    animation: hud-drop 0.6s 0.08s var(--hud-ease) both;
+  }
+
+  .hud-run.is-touch .run-air {
+    top: calc(var(--safe-t) + var(--edge) + 98px);
+    bottom: auto;
+  }
+
+  .hud-run.is-touch .run-howto {
+    top: calc(var(--safe-t) + var(--edge) + 98px);
+  }
+
+  .hud-run.is-touch .run-coach {
+    top: calc(var(--safe-t) + var(--edge) + 172px);
+  }
+
+  /* While the how-to card is up (before the start), the hint waits above the thumbs. */
+  .hud-run.is-touch .run-howto.is-on ~ .run-coach {
+    top: auto;
+    bottom: calc(var(--safe-b) + var(--edge) + 140px);
+  }
+
+  .hud-popups {
+    top: 34%;
+  }
+}
+
+/* Short landscape: the slim bar stays bottom-centre between the thumbs. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .hud-run.is-touch .run-cluster {
+    width: min(360px, calc(100% - var(--safe-l) - var(--safe-r) - 300px));
+  }
+
+  .hud-run.is-touch .run-air {
+    top: calc(var(--safe-t) + var(--edge) + 46px);
+    bottom: auto;
+  }
+
+  .hud-run.is-touch .run-coach {
+    top: calc(var(--safe-t) + var(--edge) + 4px);
+  }
+}
