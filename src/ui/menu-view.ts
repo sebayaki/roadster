@@ -12,6 +12,8 @@ import { ART_CURL, ART_LINEUP, ICONS } from "./icons";
 import authorAvatar from "./assets/sebayaki.png";
 import type { Toggles } from "./toggles";
 
+/** Phone-portrait menu layout (matches the compact menu rules in hud.css). */
+const COMPACT_MENU_QUERY = "(max-width: 640px) and (orientation: portrait)";
 const REPO_URL = "https://github.com/sebayaki/roadster";
 const AUTHOR_URL = "https://x.com/0xsebayaki";
 
@@ -262,22 +264,31 @@ export class MenuView {
   private renderSheet(scheme: ControlScheme): void {
     this.scheme = scheme;
     const rows = cheatSheet(scheme);
+    // Phones fold the cheat sheet so the attract demo stays visible; a refresh keeps the reader's choice.
+    const previous = this.sheet.querySelector("details");
+    const open = previous
+      ? previous.open
+      : !window.matchMedia(COMPACT_MENU_QUERY).matches;
     this.sheet.replaceChildren(
       h(
-        "div",
-        { class: "sheet-head" },
-        h("span", { class: "hud-label" }, "Controls"),
-        h("span", { class: "sheet-scheme" }, SCHEME_LABEL[scheme])
-      ),
-      h(
-        "dl",
-        { class: "sheet-rows" },
-        ...rows.map((row) =>
-          h(
-            "div",
-            { class: "sheet-row" },
-            h("dt", null, row.label),
-            h("dd", null, ...row.keys.map(segmentNode))
+        "details",
+        { class: "sheet-fold", open },
+        h(
+          "summary",
+          { class: "sheet-head" },
+          h("span", { class: "hud-label" }, "Controls"),
+          h("span", { class: "sheet-scheme" }, SCHEME_LABEL[scheme])
+        ),
+        h(
+          "dl",
+          { class: "sheet-rows" },
+          ...rows.map((row) =>
+            h(
+              "div",
+              { class: "sheet-row" },
+              h("dt", null, row.label),
+              h("dd", null, ...row.keys.map(segmentNode))
+            )
           )
         )
       )

@@ -2724,3 +2724,276 @@ body {
     top: calc(var(--safe-t) + var(--edge) + 4px);
   }
 }
+
+/* ---------------------------------------------------------------- menu fit */
+/*
+ * The wordmark, the stunt cards and the controls sheet size themselves with
+ * container queries, so every column width between the layout breakpoints
+ * stays tidy: no buttons or keys spilling out, no labels broken mid-word.
+ */
+.menu-brand,
+.stunt-card,
+.menu-sheet {
+  container-type: inline-size;
+}
+
+/* "RDSTR STUNTS" is ~13em wide with its tracking: scale it to the brand box. */
+.wordmark {
+  font-size: clamp(16px, 7.1cqi, 62px);
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .wordmark {
+    font-size: clamp(16px, 7.1cqi, 26px);
+  }
+}
+
+.card-eyebrow {
+  min-width: 0;
+}
+
+.card-eyebrow > * {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sheet-row dt {
+  min-width: 0;
+}
+
+/* Narrow cards: smaller art and title; PLAY wraps under BEST if it must. */
+@container (max-width: 290px) {
+  .card-head {
+    gap: 8px;
+  }
+
+  .card-art {
+    width: 64px;
+    height: 32px;
+  }
+
+  .card-title {
+    font-size: 22px;
+    letter-spacing: 0.1em;
+  }
+
+  .card-foot {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-play {
+    padding: 0 14px 0 16px;
+  }
+
+  .card-play:focus-visible .card-key {
+    display: none !important;
+  }
+}
+
+@container (max-width: 210px) {
+  .card-art {
+    display: none;
+  }
+
+  .card-title {
+    font-size: 19px;
+  }
+
+  .card-play {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
+/* Narrow controls sheet: compact keycaps that wrap under their label if needed. */
+@container (max-width: 250px) {
+  .sheet-row {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .sheet-row dt {
+    font-size: 11px;
+    white-space: normal;
+  }
+
+  .sheet-row dd {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: auto;
+    gap: 3px;
+  }
+
+  .sheet-row .hud-key {
+    height: 19px;
+    min-width: 19px;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+}
+
+/* Tiny landscape windows (split screens): stack the header, cards side by side, sheet below. */
+@media (max-height: 520px) and (orientation: landscape) and (max-width: 600px) {
+  .hud-menu {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(12px, 1fr) auto auto;
+    grid-template-areas:
+      "brand"
+      "toggles"
+      "."
+      "main"
+      "foot";
+  }
+
+  .hud-menu > .tg-group {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+
+  .menu-main {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .menu-sheet {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ------------------------------------------------------------ compact menu */
+/*
+ * Phones: each stunt card collapses to two lines ("STUNT 01 · THE CURL … BEST"
+ * over "BACKFLIP … PLAY") and the controls sheet folds away (hidden on touch,
+ * where the on-screen buttons explain themselves) so the attract demo stays
+ * visible behind the menu.
+ */
+.sheet-head {
+  list-style: none;
+}
+
+.sheet-head::-webkit-details-marker {
+  display: none;
+}
+
+.sheet-fold:not([open]) > .sheet-head {
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) and (orientation: portrait) {
+  .menu-sub {
+    margin-top: 10px;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+  }
+
+  .stunt-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "head best"
+      "title play";
+    align-items: center;
+    gap: 6px 12px;
+    padding: 12px 14px;
+  }
+
+  .card-head {
+    grid-area: head;
+    min-width: 0;
+  }
+
+  .card-art,
+  .card-tagline {
+    display: none;
+  }
+
+  .card-title {
+    grid-area: title;
+    margin: 0;
+    font-size: clamp(18px, 7cqi, 23px);
+  }
+
+  .card-foot {
+    display: contents;
+  }
+
+  .card-best {
+    grid-area: best;
+    flex-direction: row;
+    align-items: baseline;
+    justify-self: end;
+    gap: 6px;
+  }
+
+  .card-best .hud-label {
+    font-size: 8.5px;
+  }
+
+  .card-best-val {
+    font-size: 14px;
+  }
+
+  .card-play {
+    grid-area: play;
+    justify-self: end;
+    min-height: 38px;
+    padding: 0 14px 0 16px;
+  }
+
+  .menu-sheet {
+    padding: 10px 14px;
+  }
+
+  .sheet-head {
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+
+  .sheet-scheme {
+    margin-left: auto;
+  }
+
+  /* Chevron: points down while folded, up while open. */
+  .sheet-head::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin: 0 2px 3px 12px;
+    border-right: 1.5px solid var(--hud-dim);
+    border-bottom: 1.5px solid var(--hud-dim);
+    transform: rotate(45deg);
+    transition: transform 0.2s;
+  }
+
+  .sheet-fold[open] > .sheet-head::after {
+    margin-bottom: -3px;
+    transform: rotate(-135deg);
+  }
+
+  .hud-menu[data-scheme="touch"] .menu-sheet {
+    display: none;
+  }
+
+  .tg {
+    height: 36px;
+    padding: 0 12px 0 10px;
+  }
+
+  .tg-seg {
+    height: 28px;
+  }
+}
+
+/* Phones in landscape: on touch the controls sheet goes and the cards take its column. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .hud-menu[data-scheme="touch"] .menu-sheet {
+    display: none;
+  }
+
+  .hud-menu[data-scheme="touch"] .menu-main {
+    grid-template-columns: 1fr 1fr;
+  }
+}

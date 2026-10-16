@@ -661,10 +661,12 @@ export class CameraRig {
     }
     // The menu frames the stunt between the title and the cards and fits the
     // whole flight (no lead, no pan) so the camera never swings behind props.
+    // Portrait screens are too narrow for that: they frame the car and pan with it.
+    const portrait = this.camera.aspect < 1;
     const s = this.shot;
     if (this.sideAir) {
       // Square on to the Curl; far out, but the towers stay out of frame.
-      this.backflipSide(car, true);
+      this.backflipSide(car, !portrait);
       s.yaw = 0.06 + 0.08 * Math.sin(t * 0.09);
       s.maxDistance = ATTRACT_MAX_DISTANCE;
       s.topNdc = ATTRACT_TOP_NDC;
@@ -678,8 +680,8 @@ export class CameraRig {
     this.carWindow(car, 0);
     s.minX = Math.min(s.minX, s.keepMin);
     s.maxX = Math.max(s.maxX, s.keepMax);
-    s.maxWidthDistance = s.maxDistance;
     s.baseDistance = Math.min(s.baseDistance, 30);
+    s.maxWidthDistance = portrait ? s.baseDistance : s.maxDistance;
     s.groundNdc = ATTRACT_GROUND_NDC;
     this.sideShot(this.poseB, dt);
     lerpPose(out, track, this.poseB, this.hero);
