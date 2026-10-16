@@ -26,7 +26,8 @@ export class Renderer {
   readonly camera = new THREE.PerspectiveCamera(55, 1, 0.1, 3000);
   readonly quality: Quality;
   private readonly composer: EffectComposer;
-  private readonly bloom: UnrealBloomPass;
+  /** PMREM render target holding scene.environment. */
+  private readonly envTarget: THREE.WebGLRenderTarget;
 
   constructor(canvas: HTMLCanvasElement, quality: Quality = detectQuality()) {
     this.quality = quality;
@@ -45,7 +46,8 @@ export class Renderer {
     this.scene.background = new THREE.Color(PALETTE.sky);
     const pmrem = new THREE.PMREMGenerator(this.gl);
     const room = new RoomEnvironment();
-    this.scene.environment = pmrem.fromScene(room, 0.04).texture;
+    this.envTarget = pmrem.fromScene(room, 0.04);
+    this.scene.environment = this.envTarget.texture;
     this.scene.environmentIntensity = 0.35;
     room.dispose();
     pmrem.dispose();
@@ -56,8 +58,11 @@ export class Renderer {
     });
     this.composer = new EffectComposer(this.gl, target);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.8, 0.5, 0.82);
-    this.composer.addPass(this.bloom);
+    // Strength, radius and threshold: bloom picks up linear luminance above
+    // 0.82 in the HDR image, before OutputPass tone-maps it.
+    this.composer.addPass(
+      new UnrealBloomPass(new THREE.Vector2(1, 1), 0.8, 0.5, 0.82)
+    );
     this.composer.addPass(new OutputPass());
     this.resize();
   }
@@ -83,8 +88,12 @@ export class Renderer {
     this.composer.render();
   }
 
+  /** Frees the GPU resources created here (not the scene's content). */
   dispose(): void {
+    // EffectComposer.dispose() frees only its own buffers, not the passes'.
+    for (const pass of this.composer.passes) pass.dispose();
     this.composer.dispose();
+    this.envTarget.dispose();
     this.gl.dispose();
   }
 }
