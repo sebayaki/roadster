@@ -87,6 +87,7 @@ export class RunView {
   private readonly venue = h("div", { class: "run-venue" });
   private readonly bestValue = h("span", { class: "run-best-val" }, "—");
   private readonly muteIcon = icon(ICONS.soundOn);
+  /** Its label stays "Mute": aria-pressed tells whether the sound is off. */
   private readonly muteButton = h(
     "button",
     {
@@ -420,7 +421,6 @@ export class RunView {
 
   setMuted(muted: boolean): void {
     this.muteButton.setAttribute("aria-pressed", String(muted));
-    this.muteButton.setAttribute("aria-label", muted ? "Unmute" : "Mute");
     this.muteIcon.innerHTML = muted ? ICONS.soundOff : ICONS.soundOn;
     this.muteButton.classList.toggle("is-off", muted);
   }
