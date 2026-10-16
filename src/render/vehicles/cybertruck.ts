@@ -1,3 +1,4 @@
+import { clamp } from "@/core/math";
 import type { Quality } from "@/core/types";
 import { linear } from "../roadster/curve";
 import { lightBand } from "./car-body";
@@ -111,11 +112,10 @@ export function buildCybertruck(
       top,
     ];
     const zs = [0, 0.93, 0.975, SIDE_Z, SIDE_Z, planeZ(sillY), planeZ(top), 0];
-    const ramp = (v: number) => Math.min(1, Math.max(0, v));
     const t =
       1 -
-      0.04 * ramp((x - (L - FRONT_CHAMFER)) / FRONT_CHAMFER) -
-      0.025 * ramp((-L + REAR_CHAMFER - x) / REAR_CHAMFER);
+      0.04 * clamp((x - (L - FRONT_CHAMFER)) / FRONT_CHAMFER, 0, 1) -
+      0.025 * clamp((-L + REAR_CHAMFER - x) / REAR_CHAMFER, 0, 1);
     return ys.map((y, j): P3 => [x, y, Math.min(zs[j] * t, env(y))]);
   });
 

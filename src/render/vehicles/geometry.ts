@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { clamp } from "@/core/math";
 
 /** A point or vector [x, y, z] in vehicle space (+x forward, +y up, +z right). */
 export type P3 = [number, number, number];
@@ -470,7 +471,7 @@ function pointAt(m: Measured, s: number): [P2, P2] {
   const a = m.pts[i];
   const c = m.pts[i + 1] ?? a;
   const seg = m.acc[i + 1] - m.acc[i] || 1;
-  const t = Math.min(1, Math.max(0, (s - m.acc[i]) / seg));
+  const t = clamp((s - m.acc[i]) / seg, 0, 1);
   const dx = c[0] - a[0];
   const dz = c[1] - a[1];
   const l = Math.hypot(dx, dz) || 1;

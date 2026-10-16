@@ -7,6 +7,7 @@
  * Half widths (`z`) are on the +z (right) side; the loft mirrors them.
  */
 import { CAR } from "@/core/car-spec";
+import { clamp } from "@/core/math";
 import { linear, pchip } from "./curve";
 import type { Station } from "./loft";
 
@@ -197,7 +198,7 @@ const HOOD_FLAT = 0.6;
 /** Hood cross-section: a flat panel in the middle, straight facets up to the fender edges. */
 function hoodSectionH(x: number, z: number, edgeZ: number, edgeH: number) {
   const zj = edgeZ * HOOD_FLAT;
-  const t = Math.min(1, Math.max(0, (z - zj) / (edgeZ - zj)));
+  const t = clamp((z - zj) / (edgeZ - zj), 0, 1);
   return hoodH(x) + (edgeH - hoodH(x)) * t + 0.004 * (1 - z / edgeZ);
 }
 
@@ -383,7 +384,7 @@ export function bodySection(
   else if (x < X_KINK) {
     const u = (X_KINK - x) / (X_KINK - X_TIP);
     const wh = beltH(X_KINK) + (railH(X_TIP) - beltH(X_KINK)) * u;
-    wt = Math.min(1, Math.max(0, (wh - bh) / (rh - bh)));
+    wt = clamp((wh - bh) / (rh - bh), 0, 1);
   }
   const wz = bz + (rz - bz) * wt;
   const wh = bh + (rh - bh) * wt;

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { CAR, NOZZLE_POSITIONS } from "@/core/car-spec";
+import { clamp } from "@/core/math";
 import { GLOW } from "@/render/palette";
 import { box, flipWinding, merge, mirrorZ, prep, prismXY, tint } from "./geo";
 import { buildLoft, capRing, type Station } from "./loft";
@@ -63,7 +64,7 @@ function surfaceZ(x: number, h: number): number {
   for (let j = P.L; j < P.W; j++) {
     if (yy <= y[j + 1] || j === P.W - 1) {
       const span = y[j + 1] - y[j];
-      const t = span > 1e-6 ? Math.min(1, Math.max(0, (yy - y[j]) / span)) : 0;
+      const t = span > 1e-6 ? clamp((yy - y[j]) / span, 0, 1) : 0;
       return z[j] + (z[j + 1] - z[j]) * t;
     }
   }

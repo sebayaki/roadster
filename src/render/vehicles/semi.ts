@@ -1,3 +1,4 @@
+import { clamp } from "@/core/math";
 import type { Quality } from "@/core/types";
 import {
   grid,
@@ -81,7 +82,7 @@ const sliceAt = (keys: Slice[], y: number): Slice => {
   while (i < keys.length - 2 && y > keys[i + 1].y) i++;
   const a = keys[i];
   const c = keys[i + 1];
-  const t = Math.min(1, Math.max(0, (y - a.y) / (c.y - a.y)));
+  const t = clamp((y - a.y) / (c.y - a.y), 0, 1);
   const mix = (p: number, q: number) => p + (q - p) * t;
   return { y, xf: mix(a.xf, c.xf), w: mix(a.w, c.w), rf: mix(a.rf, c.rf) };
 };
