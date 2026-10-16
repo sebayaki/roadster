@@ -258,8 +258,9 @@ export type PhysicsEvent =
       type: "crash";
       position: Vec3;
       /**
-       * Impact speed (m/s): the speed into the surface it touched down on, or its full
-       * speed when it ran into an obstacle.
+       * Impact speed (m/s): its speed into the ground or ramp surface it hit in the air
+       * (the back of the Curl included), or its full speed when it hit an obstacle or
+       * drove into the back of the Curl.
        */
       impact: number;
       reason: CrashReason;
