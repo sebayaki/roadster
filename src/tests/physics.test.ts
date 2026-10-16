@@ -6,7 +6,15 @@ import { backflipLevel } from "@/levels/backflip";
 import { kickflipLevel } from "@/levels/kickflip";
 import { CarPhysics } from "@/physics/car-physics";
 import { TUNING } from "@/physics/tuning";
-import { autopilotDriver, count, first, IDLE, ofType, simulate } from "./sim";
+import {
+  autopilotDriver,
+  count,
+  first,
+  IDLE,
+  ofType,
+  simulate,
+  type Driver,
+} from "./sim";
 
 const GAS: Controls = { ...IDLE, throttle: 1 };
 
@@ -170,6 +178,33 @@ describe("run flow", () => {
     expect(p.car.gas).toBe(1);
     expect(p.car.position.y).toBe(CAR.comHeight);
   });
+
+  it.each([backflipLevel, kickflipLevel])(
+    "reset() leaves nothing behind after a landing or a wreck ($id)",
+    (level) => {
+      const landing = () => autopilotDriver(level, "clean");
+      const wreck = (): Driver => () => GAS;
+      // Every snapshot and event of 20 s of driving.
+      const play = (p: CarPhysics, driver: Driver): string[] => {
+        const frames: string[] = [];
+        for (let i = 0; i < 20 * 60; i++) {
+          p.step(1 / 60, driver(p.car, i / 60, 1 / 60));
+          frames.push(JSON.stringify([p.car, p.drainEvents()]));
+        }
+        return frames;
+      };
+      const landed = play(new CarPhysics(level), landing());
+      const wrecked = play(new CarPhysics(level), wreck());
+      expect(landed.join()).toContain('"type":"land"');
+      expect(wrecked.join()).toContain('"type":"crash"');
+      const p = new CarPhysics(level);
+      play(p, landing());
+      p.reset();
+      expect(play(p, wreck())).toEqual(wrecked);
+      p.reset();
+      expect(play(p, landing())).toEqual(landed);
+    }
+  );
 
   it("wreck tumbles in 3D and reports impacts and settled", () => {
     // Fly straight up and fall upside down onto the runway.
