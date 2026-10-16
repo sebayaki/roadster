@@ -8,7 +8,7 @@ export const LEVELS: Record<LevelId, LevelDef> = {
 };
 
 /** Menu and stunt-number order (see LEVEL_IDS). */
-export const LEVEL_ORDER: readonly LevelId[] = LEVEL_IDS;
+export const LEVEL_ORDER: LevelId[] = [...LEVEL_IDS];
 
 export function getLevel(id: LevelId): LevelDef {
   return LEVELS[id];
