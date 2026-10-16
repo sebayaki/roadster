@@ -6,7 +6,8 @@ import * as THREE from "three";
  * to black in the fog (instead of to the fog color) so distant ones vanish.
  */
 
-const FOG_FADE = /* glsl */ `
+/** Fog for additive shaders: fades `gl_FragColor` to black with the scene fog. */
+export const FOG_FADE = /* glsl */ `
   #ifdef USE_FOG
     #ifdef FOG_EXP2
       float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );

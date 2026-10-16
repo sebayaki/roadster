@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { FOG_FADE } from "./glow";
 
 /**
  * LED strips drawn as camera-facing ribbons along polylines. Each ribbon keeps
@@ -114,14 +115,7 @@ const HALO_FRAGMENT = /* glsl */ `
   void main() {
     float a = exp(-vAcross * vAcross * 5.0) - 0.0067;
     gl_FragColor = vec4(uColor * max(a, 0.0) * vIntensity, 1.0);
-    #ifdef USE_FOG
-      #ifdef FOG_EXP2
-        float fogFactor = 1.0 - exp( - fogDensity * fogDensity * vFogDepth * vFogDepth );
-      #else
-        float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
-      #endif
-      gl_FragColor.rgb *= 1.0 - fogFactor;
-    #endif
+    ${FOG_FADE}
   }`;
 
 const tmpSize = new THREE.Vector2();
