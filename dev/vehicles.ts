@@ -161,7 +161,7 @@ function report(root: THREE.Object3D, list: Obstacle[]): void {
     const box = new THREE.Box3();
     node.traverse((m) => {
       if (!(m instanceof THREE.Mesh)) return;
-      const geo = m.geometry as THREE.BufferGeometry;
+      const geo = m.geometry;
       const pos = geo.getAttribute("position");
       triangles += (geo.index ? geo.index.count : pos.count) / 3;
       draws++;

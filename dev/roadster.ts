@@ -99,7 +99,7 @@ function logStats(root: THREE.Object3D): void {
   let tris = 0;
   root.traverse((o) => {
     if (!(o instanceof THREE.Mesh) || !o.visible) return;
-    const g = o.geometry as THREE.BufferGeometry;
+    const g = o.geometry;
     const n = (g.index ? g.index.count : g.getAttribute("position").count) / 3;
     const count = o instanceof THREE.InstancedMesh ? o.count : 1;
     calls += 1;
@@ -125,9 +125,8 @@ void runHarness({
     floor.receiveShadow = true;
     floor.visible = view !== "under";
     // Keep the floor dark: the shared room environment would light it up.
-    const floorMaterial = floor.material as THREE.MeshStandardMaterial;
-    floorMaterial.envMap = scene.environment;
-    floorMaterial.envMapIntensity = 0.05;
+    floor.material.envMap = scene.environment;
+    floor.material.envMapIntensity = 0.05;
     scene.add(floor);
 
     // Big soft key overhead (slightly front-left, like the press shots), a low
