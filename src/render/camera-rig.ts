@@ -668,9 +668,8 @@ export class CameraRig {
       s.maxDistance = LINEUP_ATTRACT_DEPTH / Math.cos(s.yaw);
       s.topNdc = ATTRACT_TOP_NDC_LINEUP;
     }
+    // Without the lead, the window stays inside the [minX, maxX] fitted above.
     this.carWindow(car, 0);
-    s.minX = Math.min(s.minX, s.keepMin);
-    s.maxX = Math.max(s.maxX, s.keepMax);
     s.baseDistance = Math.min(s.baseDistance, 30);
     s.maxWidthDistance = portrait ? s.baseDistance : s.maxDistance;
     s.groundNdc = ATTRACT_GROUND_NDC;
