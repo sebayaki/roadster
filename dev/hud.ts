@@ -23,6 +23,7 @@ import type {
 } from "@/core/types";
 import { CAR } from "@/core/car-spec";
 import { DEG, clamp } from "@/core/math";
+import { createCarSnapshot } from "@/core/snapshot";
 import { getLevel, LEVEL_ORDER, nextLevel } from "@/levels";
 import { Input } from "@/input/input";
 import { Hud, type PopupKind } from "@/ui/hud";
@@ -73,32 +74,9 @@ const best: Partial<Record<LevelId, number>> = { backflip: 8790 };
 const root = document.getElementById("ui") as HTMLElement;
 const hud = new Hud(root);
 const input = new Input(root);
-const car = makeCar();
+const car = createCarSnapshot();
 let paused = false;
 let clock = Number(params.get("t") ?? 0);
-
-function makeCar(): CarSnapshot {
-  return {
-    mode: "grounded",
-    position: { x: 0, y: CAR.comHeight, z: 0 },
-    velocity: { x: 0, y: 0, z: 0 },
-    quaternion: { x: 0, y: 0, z: 0, w: 1 },
-    pitch: 0,
-    roll: 0,
-    speed: 0,
-    throttle: 0,
-    brake: 0,
-    gas: 1,
-    thrusters: [0, 0, 0, 0],
-    wheelSpin: 0,
-    suspension: 0,
-    onRamp: false,
-    heightAboveGround: 0,
-    airTime: 0,
-    trickPitch: 0,
-    trickRoll: 0,
-  };
-}
 
 function level(): LevelDef {
   return getLevel(levelId);
@@ -109,7 +87,7 @@ function fakeCar(t: number): void {
   const l = level();
   const kick = l.spinAxis === "roll";
   const { position, velocity, thrusters } = car;
-  Object.assign(car, makeCar(), { position, velocity, thrusters });
+  Object.assign(car, createCarSnapshot(), { position, velocity, thrusters });
   position.z = 0;
   velocity.z = 0;
   thrusters.fill(0);

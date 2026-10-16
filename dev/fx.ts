@@ -18,6 +18,7 @@ import { FxSystem } from "@/render/fx";
 import { RoadsterModel } from "@/render/roadster-model";
 import { CAR } from "@/core/car-spec";
 import { TAU, lerp, smoothstep } from "@/core/math";
+import { createCarSnapshot } from "@/core/snapshot";
 import type { CarMode, CarSnapshot, Quality, Vec3 } from "@/core/types";
 import { getLevel } from "@/levels";
 import { buildScenery, type Scenery } from "@/render/scenery";
@@ -210,29 +211,6 @@ const VIEWS: Record<string, View> = {
   lineup: { position: [-12, 3, 42], target: [-14, 4, 0], fov: 50 },
 };
 
-function makeSnapshot(): CarSnapshot {
-  return {
-    mode: "airborne",
-    position: { x: 0, y: 0, z: 0 },
-    velocity: { x: 0, y: 0, z: 0 },
-    quaternion: { x: 0, y: 0, z: 0, w: 1 },
-    pitch: 0,
-    roll: 0,
-    speed: 0,
-    throttle: 0,
-    brake: 0,
-    gas: 1,
-    thrusters: [0, 0, 0, 0],
-    wheelSpin: 0,
-    suspension: 0,
-    onRamp: false,
-    heightAboveGround: 0,
-    airTime: 0,
-    trickPitch: 0,
-    trickRoll: 0,
-  };
-}
-
 function makePose(): Pose {
   const pose: Pose = {
     x: 0,
@@ -297,7 +275,7 @@ let roadster: RoadsterModel;
 let scenery: Scenery | null = null;
 let demo: Demo;
 let lastCycleTime = 0;
-const car = makeSnapshot();
+const car = createCarSnapshot();
 const pose = makePose();
 const poseA = makePose();
 const poseB = makePose();

@@ -4,6 +4,7 @@
  * through the engine's real graph in an OfflineAudioContext, then measures them.
  * Dev tooling only; the game never imports it.
  */
+import { createCarSnapshot } from "@/core/snapshot";
 import type { CarSnapshot } from "@/core/types";
 import type { AudioCue } from "./audio-engine";
 import { AUDIO_CUES, MAX_VOICES } from "./cues";
@@ -154,29 +155,8 @@ async function checkCue(cue: AudioCue, intensity = 1): Promise<CheckResult> {
   return { name: cue, stats, samples, issues };
 }
 
-/** A mutable snapshot the scripts below drive like the physics would. */
-export function createFakeCar(): CarSnapshot {
-  return {
-    mode: "grounded",
-    position: { x: 0, y: 0.5, z: 0 },
-    velocity: { x: 0, y: 0, z: 0 },
-    quaternion: { x: 0, y: 0, z: 0, w: 1 },
-    pitch: 0,
-    roll: 0,
-    speed: 0,
-    throttle: 0,
-    brake: 0,
-    gas: 1,
-    thrusters: [0, 0, 0, 0],
-    wheelSpin: 0,
-    suspension: 0,
-    onRamp: false,
-    heightAboveGround: 0,
-    airTime: 0,
-    trickPitch: 0,
-    trickRoll: 0,
-  };
-}
+/** A mutable snapshot (at rest) the scripts below drive like the physics would. */
+export const createFakeCar = createCarSnapshot;
 
 /** Puts the fake car in a simple state: on the runway along +x, or flying back over it. */
 export function driveFakeCar(
