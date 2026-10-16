@@ -10,7 +10,7 @@
  */
 import * as THREE from "three";
 import type { Obstacle, Quality, VehicleKind } from "@/core/types";
-import { kickflipLevel } from "@/levels/kickflip";
+import { kickflipLevel, OUTLINE_BASE } from "@/levels/kickflip";
 import { GLOW, PALETTE } from "@/render/palette";
 import { buildLineup, createVehicle } from "@/render/vehicles-model";
 import { runHarness, type View } from "./harness";
@@ -167,7 +167,8 @@ function report(root: THREE.Object3D, list: Obstacle[]): void {
       for (let i = 0; i < pos.count; i++) {
         v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
         box.expandByPoint(v);
-        if (node !== root && v.y > o.baseY + 0.121) {
+        // The polygon starts OUTLINE_BASE above the stand (1 mm slack).
+        if (node !== root && v.y > o.baseY + OUTLINE_BASE + 0.001) {
           worst = Math.max(worst, outside(o.polygon, v.x, v.y));
         }
       }
