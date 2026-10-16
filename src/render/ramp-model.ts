@@ -152,32 +152,30 @@ function ridingSurface(f: Frame[], columns: number): THREE.BufferGeometry {
   );
 }
 
+/** Point (x, y) `depth` meters behind the riding surface at a profile frame. */
+function behind(q: Frame, depth: number): [number, number] {
+  return [q.x - q.nx * depth, q.y - q.ny * depth];
+}
+
 /** Back face and both side faces of the shell plus the end cap at the lip. */
 function shell(f: Frame[]): THREE.BufferGeometry {
   const back = grid(
     f.length,
     2,
-    (i, j) => {
-      const q = f[i];
-      return {
-        p: [q.x - q.nx * CURL_SHELL, q.y - q.ny * CURL_SHELL, j ? HALF : -HALF],
-        n: [-q.nx, -q.ny, 0],
-      };
-    },
+    (i, j) => ({
+      p: [...behind(f[i], CURL_SHELL), j ? HALF : -HALF],
+      n: [-f[i].nx, -f[i].ny, 0],
+    }),
     true
   );
   const side = (sign: 1 | -1) =>
     grid(
       f.length,
       2,
-      (i, j) => {
-        const q = f[i];
-        const d = j * CURL_SHELL;
-        return {
-          p: [q.x - q.nx * d, q.y - q.ny * d, sign * HALF],
-          n: [0, 0, sign],
-        };
-      },
+      (i, j) => ({
+        p: [...behind(f[i], j * CURL_SHELL), sign * HALF],
+        n: [0, 0, sign],
+      }),
       sign < 0
     );
   const lip = f[f.length - 1];
@@ -185,11 +183,7 @@ function shell(f: Frame[]): THREE.BufferGeometry {
     2,
     2,
     (i, j) => ({
-      p: [
-        lip.x - lip.nx * CURL_SHELL * i,
-        lip.y - lip.ny * CURL_SHELL * i,
-        j ? HALF : -HALF,
-      ],
+      p: [...behind(lip, i * CURL_SHELL), j ? HALF : -HALF],
       n: [lip.tx, lip.ty, 0],
     }),
     false
@@ -214,11 +208,6 @@ function edgeLines(f: Frame[]): THREE.Vector3[][] {
   );
 }
 
-/** Point on the shell's back face at a profile frame. */
-function backPoint(q: Frame): [number, number] {
-  return [q.x - q.nx * CURL_SHELL, q.y - q.ny * CURL_SHELL];
-}
-
 /**
  * Back-face point where `key` (0 = x, 1 = y) reaches `value`, searching the
  * lower (angle < 90°) or upper part of the curl. Null when out of range.
@@ -232,8 +221,8 @@ function backWhere(
   for (let i = 0; i < f.length - 1; i++) {
     const isUpper = f[i].tx < 0;
     if (isUpper !== upper) continue;
-    const a = backPoint(f[i]);
-    const b = backPoint(f[i + 1]);
+    const a = behind(f[i], CURL_SHELL);
+    const b = behind(f[i + 1], CURL_SHELL);
     const lo = Math.min(a[key], b[key]);
     const hi = Math.max(a[key], b[key]);
     if (value < lo || value > hi || hi === lo) continue;
@@ -396,7 +385,7 @@ function apron(): THREE.BufferGeometry {
  */
 export function buildCurl(
   quality: Quality,
-  options: CurlOptions = {}
+  { wash = 0xffffff, washIntensity = 0.4 }: CurlOptions = {}
 ): THREE.Group {
   const high = quality === "high";
   const group = new THREE.Group();
@@ -410,9 +399,9 @@ export function buildCurl(
     roughnessMap: tex.roughnessMap,
     roughness: 1,
     metalness: 0,
-    emissive: new THREE.Color(options.wash ?? 0xffffff),
+    emissive: new THREE.Color(wash),
     emissiveMap: tex.map,
-    emissiveIntensity: options.washIntensity ?? 0.4,
+    emissiveIntensity: washIntensity,
   });
   if (tex.normalMap) {
     concrete.normalMap = tex.normalMap;
@@ -437,7 +426,7 @@ export function buildCurl(
   const leds = createLedLines(edgeLines(f), EDGE_LED, "curl-leds");
 
   const apronMat = envScale(concrete.clone(), 0.2);
-  apronMat.emissiveIntensity = (options.washIntensity ?? 0.4) * 0.15;
+  apronMat.emissiveIntensity = washIntensity * 0.15;
   apronMat.color.multiplyScalar(0.85);
   apronMat.polygonOffset = true;
   apronMat.polygonOffsetFactor = -1;
