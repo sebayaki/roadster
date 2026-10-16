@@ -2,9 +2,9 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type { ProfileSample, Quality } from "@/core/types";
 import { backflipLevel, CURL_WIDTH } from "@/levels/backflip";
+import { envScale } from "./env-scale";
 import { GLOW, PALETTE } from "./palette";
 import { createLedLines, type LedLineOptions } from "./scenery/led-lines";
-import { scaleEnvironment } from "./scenery/materials";
 import { MemberList, type Vec3Tuple } from "./scenery/members";
 import { CONCRETE_TILE, createConcreteTextures } from "./textures";
 
@@ -418,12 +418,12 @@ export function buildCurl(
     concrete.normalMap = tex.normalMap;
     concrete.normalScale.set(0.7, 0.7);
   }
-  scaleEnvironment(concrete, 0.35);
+  envScale(concrete, 0.35);
   const surface = new THREE.Mesh(ridingSurface(f, high ? 8 : 2), concrete);
   surface.name = "curl-surface";
   surface.receiveShadow = high;
 
-  const shellMat = scaleEnvironment(
+  const shellMat = envScale(
     new THREE.MeshStandardMaterial({
       color: 0x2a2d32,
       roughness: 0.7,
@@ -436,7 +436,7 @@ export function buildCurl(
 
   const leds = createLedLines(edgeLines(f), EDGE_LED, "curl-leds");
 
-  const apronMat = scaleEnvironment(concrete.clone(), 0.2);
+  const apronMat = envScale(concrete.clone(), 0.2);
   apronMat.emissiveIntensity = (options.washIntensity ?? 0.4) * 0.15;
   apronMat.color.multiplyScalar(0.85);
   apronMat.polygonOffset = true;
@@ -446,7 +446,7 @@ export function buildCurl(
   apronMesh.name = "curl-apron";
   apronMesh.receiveShadow = high;
 
-  const steel = scaleEnvironment(
+  const steel = envScale(
     new THREE.MeshStandardMaterial({
       color: PALETTE.steel,
       metalness: 0.45,

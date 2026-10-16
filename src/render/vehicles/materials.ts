@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { Quality, VehicleKind } from "@/core/types";
+import { envScale } from "../env-scale";
 import { GLOW } from "../palette";
 import { SLOT_NAMES } from "./geometry";
 
@@ -27,43 +28,10 @@ const TAIL = new THREE.Color(4.6, 0.13, 0.1);
 const AMBER = new THREE.Color(2.6, 0.95, 0.1);
 
 /**
- * Scales the image-based lighting of a lit material. The shared studio
- * environment (scene.environment) overrides envMapIntensity and is far brighter
- * than a night venue, so vehicles keep only a fraction of it and rely on the
- * venue's spotlights.
+ * Materials shared by a set of vehicles; only the paint differs per vehicle.
+ * Lit ones keep only a fraction of the studio environment (envScale) and rely
+ * on the venue's spotlights.
  */
-export function envScale<T extends THREE.MeshStandardMaterial>(
-  material: T,
-  diffuse: number,
-  specular: number
-): T {
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uEnvDiffuse = { value: diffuse };
-    shader.uniforms.uEnvSpecular = { value: specular };
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        "void main() {",
-        "uniform float uEnvDiffuse;\nuniform float uEnvSpecular;\nvoid main() {"
-      )
-      .replace(
-        "#include <lights_fragment_maps>",
-        /* glsl */ `#include <lights_fragment_maps>
-        #if defined( RE_IndirectDiffuse )
-          iblIrradiance *= uEnvDiffuse;
-        #endif
-        #if defined( RE_IndirectSpecular )
-          radiance *= uEnvSpecular;
-          #ifdef USE_CLEARCOAT
-            clearcoatRadiance *= uEnvSpecular;
-          #endif
-        #endif`
-      );
-  };
-  material.customProgramCacheKey = () => "vehicle-env";
-  return material;
-}
-
-/** Materials shared by a set of vehicles; only the paint differs per vehicle. */
 export interface VehicleMaterials {
   /** Materials indexed by slot (see SLOT), with a new paint material for this vehicle. */
   forVehicle(kind: VehicleKind, color: number): THREE.Material[];

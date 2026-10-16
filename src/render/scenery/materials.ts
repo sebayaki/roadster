@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { envScale } from "../env-scale";
 
 /**
  * A fake floodlight pool on the ground: an ellipse of extra irradiance,
@@ -19,10 +20,9 @@ export interface LightPool {
 
 export interface VenuePatch {
   /**
-   * Multiplier for the image-based lighting from scene.environment. three.js
-   * ignores `envMapIntensity` for that map (it forces scene.environmentIntensity),
-   * but a night venue needs the dim studio environment much weaker on asphalt
-   * and concrete than on car paint.
+   * Multiplier for the image-based lighting from scene.environment (see
+   * envScale): a night venue needs the dim studio environment much weaker on
+   * asphalt and concrete than on car paint.
    */
   envScale: number;
   /** Floodlight pools lighting this surface (ground-level materials). */
@@ -66,61 +66,44 @@ export function patchVenueMaterial<T extends THREE.MeshStandardMaterial>(
   const pools = patch.pools ?? [];
   const count = pools.length;
   const uniforms = count ? poolUniforms(pools) : {};
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uEnvScale = { value: patch.envScale };
-    Object.assign(shader.uniforms, uniforms);
-    const decl = count
-      ? /* glsl */ `
-        #define POOL_COUNT ${count}
-        varying vec2 vPoolXZ;
-        uniform vec4 uPoolA[POOL_COUNT];
-        uniform vec2 uPoolB[POOL_COUNT];
-        uniform vec3 uPoolColor[POOL_COUNT];`
-      : "";
-    if (count) {
-      shader.vertexShader = shader.vertexShader
-        .replace("void main() {", "varying vec2 vPoolXZ;\nvoid main() {")
-        .replace(
-          "#include <project_vertex>",
-          "#include <project_vertex>\nvPoolXZ = ( modelMatrix * vec4( transformed, 1.0 ) ).xz;"
-        );
-    }
-    let source = shader.fragmentShader
-      .replace(
-        "void main() {",
-        `uniform float uEnvScale;${decl}\nvoid main() {`
-      )
-      .replace(
-        "#include <lights_fragment_maps>",
-        /* glsl */ `#include <lights_fragment_maps>
-        #if defined( RE_IndirectDiffuse )
-          iblIrradiance *= uEnvScale;
-          #ifdef POOL_COUNT
-            for ( int i = 0; i < POOL_COUNT; i ++ ) {
-              vec2 d = vPoolXZ - uPoolA[ i ].xy;
-              float a = dot( d, uPoolA[ i ].zw );
-              float b = dot( d, uPoolB[ i ] );
-              float r2 = a * a + b * b;
-              irradiance += uPoolColor[ i ] * exp( -2.6 * r2 ) * ( 1.0 - smoothstep( 0.55, 1.0, r2 ) );
-            }
-          #endif
-        #endif
-        #if defined( RE_IndirectSpecular )
-          radiance *= uEnvScale;
-        #endif`
-      );
-    if (patch.fragment) source = patch.fragment(source);
-    shader.fragmentShader = source;
-  };
-  const key = `venue:${patch.key ?? ""}:${count}`;
-  material.customProgramCacheKey = () => key;
-  return material;
-}
-
-/** Shorthand: only scale the environment lighting (see VenuePatch.envScale). */
-export function scaleEnvironment<T extends THREE.MeshStandardMaterial>(
-  material: T,
-  envScale: number
-): T {
-  return patchVenueMaterial(material, { envScale });
+  return envScale(material, patch.envScale, patch.envScale, {
+    key: `venue:${patch.key ?? ""}:${count}`,
+    extend(shader) {
+      if (count) {
+        Object.assign(shader.uniforms, uniforms);
+        shader.vertexShader = shader.vertexShader
+          .replace("void main() {", "varying vec2 vPoolXZ;\nvoid main() {")
+          .replace(
+            "#include <project_vertex>",
+            "#include <project_vertex>\nvPoolXZ = ( modelMatrix * vec4( transformed, 1.0 ) ).xz;"
+          );
+        shader.fragmentShader = shader.fragmentShader
+          .replace(
+            "void main() {",
+            /* glsl */ `#define POOL_COUNT ${count}
+            varying vec2 vPoolXZ;
+            uniform vec4 uPoolA[POOL_COUNT];
+            uniform vec2 uPoolB[POOL_COUNT];
+            uniform vec3 uPoolColor[POOL_COUNT];
+            void main() {`
+          )
+          .replace(
+            "#include <lights_fragment_maps>",
+            /* glsl */ `#include <lights_fragment_maps>
+            #if defined( RE_IndirectDiffuse )
+              for ( int i = 0; i < POOL_COUNT; i ++ ) {
+                vec2 d = vPoolXZ - uPoolA[ i ].xy;
+                float a = dot( d, uPoolA[ i ].zw );
+                float b = dot( d, uPoolB[ i ] );
+                float r2 = a * a + b * b;
+                irradiance += uPoolColor[ i ] * exp( -2.6 * r2 ) * ( 1.0 - smoothstep( 0.55, 1.0, r2 ) );
+              }
+            #endif`
+          );
+      }
+      if (patch.fragment) {
+        shader.fragmentShader = patch.fragment(shader.fragmentShader);
+      }
+    },
+  });
 }

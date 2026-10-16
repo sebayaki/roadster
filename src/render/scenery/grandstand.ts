@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type { Quality } from "@/core/types";
+import { envScale } from "../env-scale";
 import { createLedLines } from "./led-lines";
 import { LED_STRIP } from "./markings";
-import { scaleEnvironment } from "./materials";
 
 /** A tiered audience stand: the long red-lit structure of the aerial shots. */
 export interface GrandstandSpec {
@@ -85,7 +85,7 @@ export function buildGrandstands(
   parts.forEach((p) => p.dispose());
   const stands = new THREE.Mesh(
     merged,
-    scaleEnvironment(
+    envScale(
       new THREE.MeshStandardMaterial({
         color: 0x17191d,
         roughness: 0.85,

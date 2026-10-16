@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type { Obstacle, Quality } from "@/core/types";
+import { envScale } from "../env-scale";
 import { GLOW } from "../palette";
-import { envScale } from "./materials";
 
 /** Spacing of the individual LEDs along the strips (m). */
 const LED_PITCH = 0.07;

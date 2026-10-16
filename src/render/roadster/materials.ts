@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { Quality } from "@/core/types";
+import { envScale } from "@/render/env-scale";
 import { GLOW, PALETTE } from "@/render/palette";
 
 /** Every material of the Roadster (one draw call each, wheels are instanced). */
@@ -24,51 +25,20 @@ const GLASS_TINT = new THREE.Color(0.26, 0.185, 0.135);
 const GLASS_COATING = new THREE.Color(0.32, 0.21, 0.12);
 
 /**
- * Scales the image-based lighting of a standard/physical material (the shared
- * RoomEnvironment has very bright panels that would blow out glossy paint and
- * glass) and optionally the specular highlights of real lights.
+ * envScale with caps: the shared RoomEnvironment has very bright panels that
+ * would blow out glossy paint and bloom off mirror-like glass, and light glints
+ * (scaled by `direct`) must not bloom into huge blobs either.
  */
-function envScale<T extends THREE.MeshStandardMaterial>(
+function roadsterEnv<T extends THREE.MeshStandardMaterial>(
   material: T,
   diffuse: number,
   specular: number,
   direct = 1
 ): T {
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uEnvDiffuse = { value: diffuse };
-    shader.uniforms.uEnvSpecular = { value: specular };
-    shader.uniforms.uDirectSpecular = { value: direct };
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        "void main() {",
-        "uniform float uEnvDiffuse;\nuniform float uEnvSpecular;\nuniform float uDirectSpecular;\nvoid main() {"
-      )
-      .replace(
-        "#include <lights_fragment_maps>",
-        /* glsl */ `#include <lights_fragment_maps>
-        #if defined( RE_IndirectDiffuse )
-          iblIrradiance *= uEnvDiffuse;
-        #endif
-        #if defined( RE_IndirectSpecular )
-          // Capped so the room's bright panels do not bloom off mirror-like glass.
-          radiance = min(radiance * uEnvSpecular, vec3(1.2));
-          #ifdef USE_CLEARCOAT
-            clearcoatRadiance = min(clearcoatRadiance * uEnvSpecular, vec3(1.2));
-          #endif
-        #endif`
-      )
-      .replace(
-        "#include <lights_fragment_end>",
-        /* glsl */ `#include <lights_fragment_end>
-        // Tame light glints so a lamp reflection does not bloom into a huge blob.
-        reflectedLight.directSpecular = min(
-          reflectedLight.directSpecular * uDirectSpecular,
-          vec3(1.0)
-        );`
-      );
-  };
-  material.customProgramCacheKey = () => "roadster-env";
-  return material;
+  return envScale(material, diffuse, specular, {
+    specularCap: 1.2,
+    direct: { scale: direct, cap: 1 },
+  });
 }
 
 /** Procedural "RDSTR" plate (white, condensed black letters). */
@@ -105,10 +75,10 @@ export function createMaterials(quality: Quality): RoadsterMaterials {
     params: THREE.MeshStandardMaterialParameters,
     diffuse: number,
     specular: number
-  ) => envScale(new THREE.MeshStandardMaterial(params), diffuse, specular);
+  ) => roadsterEnv(new THREE.MeshStandardMaterial(params), diffuse, specular);
 
   // Ano White: clear-coated satin white (plain standard material on phones).
-  const paint = envScale(
+  const paint = roadsterEnv(
     high
       ? new THREE.MeshPhysicalMaterial({
           color: PALETTE.anoWhite,
@@ -128,7 +98,7 @@ export function createMaterials(quality: Quality): RoadsterMaterials {
   // Gold Glazed canopy as coated, tinted glass: what is behind it (the white
   // interior, the night) is multiplied by a bronze tint and the coating adds
   // gold reflections with no diffuse term (result = behind * tint + reflection).
-  const glass = envScale(
+  const glass = roadsterEnv(
     new THREE.MeshStandardMaterial({
       color: GLASS_COATING,
       metalness: 1,

@@ -1,13 +1,10 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type { Quality } from "@/core/types";
+import { envScale } from "../env-scale";
 import { GLOW, PALETTE } from "../palette";
 import { createLedLines, subdivide, type LedLineOptions } from "./led-lines";
-import {
-  patchVenueMaterial,
-  scaleEnvironment,
-  type LightPool,
-} from "./materials";
+import { patchVenueMaterial, type LightPool } from "./materials";
 
 /** Runway / barrier / stand LED strips: the glow comes from the additive halo ribbon. */
 export const LED_STRIP: LedLineOptions = {
@@ -135,7 +132,7 @@ export function buildBarriers(
   group.name = "barriers";
   const walls = new THREE.Mesh(
     stripeBoxes(stripes, height),
-    scaleEnvironment(
+    envScale(
       new THREE.MeshStandardMaterial({
         color: 0x1e2024,
         roughness: 0.8,
