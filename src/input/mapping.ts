@@ -64,6 +64,22 @@ export const PAD_ACTIONS: ReadonlyArray<readonly [number, InputAction]> = [
   [PAD.START, "pause"],
 ];
 
+/** navigator.getGamepads(), or null where the API is missing or blocked by a permissions policy. */
+export function readGamepads(): (Gamepad | null)[] | null {
+  try {
+    return navigator.getGamepads ? navigator.getGamepads() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Connected gamepads (browsers expose a pad after its first button press). */
+export function countGamepads(): number {
+  let count = 0;
+  for (const pad of readGamepads() ?? []) if (pad?.connected) count += 1;
+  return count;
+}
+
 export const STICK_DEADZONE = 0.22;
 export const TRIGGER_DEADZONE = 0.06;
 

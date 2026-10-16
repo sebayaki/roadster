@@ -1,5 +1,6 @@
 /** Device-aware control names for the menu cheat sheet, hints and button keycaps. */
 import type { SpinAxis } from "@/core/types";
+import { countGamepads } from "@/input/mapping";
 
 export type ControlScheme = "keyboard" | "touch" | "gamepad";
 
@@ -13,20 +14,9 @@ export interface CheatRow {
   keys: HintSegment[];
 }
 
-/** True when a gamepad is connected (browsers expose it after its first button press). */
-function hasGamepad(): boolean {
-  try {
-    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const pad of pads) if (pad?.connected) return true;
-  } catch {
-    // Gamepad API blocked by a permissions policy.
-  }
-  return false;
-}
-
 export function detectScheme(isTouch: boolean): ControlScheme {
   if (isTouch) return "touch";
-  return hasGamepad() ? "gamepad" : "keyboard";
+  return countGamepads() > 0 ? "gamepad" : "keyboard";
 }
 
 const CCW: HintSegment = { key: "◀", icon: "ccw" };

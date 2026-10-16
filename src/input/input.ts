@@ -8,7 +8,9 @@ import {
   KEY_PREVENT_DEFAULT,
   PAD,
   PAD_ACTIONS,
+  countGamepads,
   isInteractiveTarget,
+  readGamepads,
   stickToSpin,
   triggerToPedal,
   type HoldControl,
@@ -87,7 +89,7 @@ export class Input {
   constructor(touchRoot: HTMLElement) {
     this.isTouch = detectTouch();
     this.touch = new TouchControls(touchRoot);
-    this.padsConnected = this.countPads();
+    this.padsConnected = countGamepads();
 
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
@@ -223,27 +225,12 @@ export class Input {
   };
 
   private readonly onPadsChanged = (): void => {
-    this.padsConnected = this.countPads();
+    this.padsConnected = countGamepads();
     if (this.padsConnected === 0) {
       this.padPrev.length = 0;
       this.padLatched.length = 0;
     }
   };
-
-  private countPads(): number {
-    let count = 0;
-    const pads = this.getPads();
-    if (pads) for (const pad of pads) if (pad?.connected) count += 1;
-    return count;
-  }
-
-  private getPads(): (Gamepad | null)[] | null {
-    try {
-      return navigator.getGamepads ? navigator.getGamepads() : null;
-    } catch {
-      return null; // Blocked by a permissions policy.
-    }
-  }
 
   private pollGamepads(): void {
     this.padThrottle = 0;
@@ -251,7 +238,7 @@ export class Input {
     this.padSpin = 0;
     this.padThrust = false;
     if (this.padsConnected === 0) return;
-    const pads = this.getPads();
+    const pads = readGamepads();
     if (!pads) return;
     for (let i = 0; i < pads.length; i++) {
       const pad = pads[i];
