@@ -111,17 +111,15 @@ table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
 td, th { padding: 3px 14px 3px 0; text-align: left; color: var(--dim); font-weight: 400; }
 `;
 
-/** Dev-only peek at the engine's private state; not part of its API. */
-function internals(engine: AudioEngine): {
+interface EngineInternals {
   ctx: AudioContext | null;
   graph: AudioGraph | null;
   paused: boolean;
-} {
-  return engine as unknown as {
-    ctx: AudioContext | null;
-    graph: AudioGraph | null;
-    paused: boolean;
-  };
+}
+
+/** Dev-only peek at the engine's private state; not part of its API. */
+function internals(engine: AudioEngine): EngineInternals {
+  return engine as unknown as EngineInternals;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -222,6 +220,17 @@ function labPage(): void {
     refresh();
   };
   const pct = (v: number) => `${Math.round(v * 100)}%`;
+  /** Label, level bar and value readout; returns the setter (bar fill 0..1, text). */
+  const meterRow = (parent: HTMLElement, label: string) => {
+    const row = el("div", parent, "", "row");
+    el("span", row, label);
+    const bar = el("i", el("div", row, "", "bar"));
+    const value = el("span", row);
+    return (fill: number, text: string): void => {
+      bar.style.transform = `scaleX(${Math.min(1, fill)})`;
+      value.textContent = text;
+    };
+  };
 
   // Engine panel.
   const enginePanel = el("div", grid, "", "panel");
@@ -244,14 +253,8 @@ function labPage(): void {
   const scopeCanvas = el("canvas", enginePanel);
   scopeCanvas.width = 600;
   scopeCanvas.height = 90;
-  const meterRow = (label: string) => {
-    const row = el("div", enginePanel, "", "row");
-    el("span", row, label);
-    const bar = el("i", el("div", row, "", "bar"));
-    return { bar, value: el("span", row) };
-  };
-  const peakMeter = meterRow("peak");
-  const rmsMeter = meterRow("rms");
+  const setPeak = meterRow(enginePanel, "peak");
+  const setRms = meterRow(enginePanel, "rms");
 
   // Cue panel.
   const cuePanel = el("div", grid, "", "panel");
@@ -310,12 +313,7 @@ function labPage(): void {
     ["hissGain", LAYER_LEVEL.hiss],
     ["roarGain", LAYER_LEVEL.roar],
   ];
-  const gainRows = gains.map(([key]) => {
-    const row = el("div", mixPanel, "", "row");
-    el("span", row, key);
-    const bar = el("i", el("div", row, "", "bar"));
-    return { bar, value: el("span", row) };
-  });
+  const setGains = gains.map(([key]) => meterRow(mixPanel, key));
   const hzLine = el("div", mixPanel, "", "stats");
 
   function refreshAll(): void {
@@ -367,14 +365,11 @@ function labPage(): void {
       ? `${ctx.state} · ${ctx.currentTime.toFixed(1)} s`
       : "no context (tap to unlock)";
     status.className = `pill ${ctx?.state === "running" ? "ok" : "bad"}`;
-    peakMeter.bar.style.transform = `scaleX(${Math.min(1, level.peak)})`;
-    peakMeter.value.textContent = dbfs(level.peak);
-    rmsMeter.bar.style.transform = `scaleX(${Math.min(1, level.rms * 4)})`;
-    rmsMeter.value.textContent = dbfs(level.rms);
+    setPeak(level.peak, dbfs(level.peak));
+    setRms(level.rms * 4, dbfs(level.rms));
     gains.forEach(([key, full], n) => {
       const v = targets[key];
-      gainRows[n].bar.style.transform = `scaleX(${Math.min(1, v / full)})`;
-      gainRows[n].value.textContent = v.toFixed(3);
+      setGains[n](v / full, v.toFixed(3));
     });
     hzLine.textContent = `motor ${targets.motorHz.toFixed(0)} Hz · cutoff ${targets.motorCutoff.toFixed(0)} Hz · road ${targets.roadHz.toFixed(0)} Hz · wind ${targets.windHz.toFixed(0)} Hz · hiss hp ${targets.hissCutoff.toFixed(0)} Hz`;
     drawWave(scopeCanvas, scope, 0, scope.length);
