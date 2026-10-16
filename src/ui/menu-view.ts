@@ -131,10 +131,14 @@ export class MenuView {
     this.onPlay = null;
   }
 
-  /** Re-render the cheat sheet when the control scheme changes (gamepad plugged in). */
+  /** Follow a control scheme change (gamepad plugged in or out): cheat sheet and PLAY keycaps. */
   setScheme(scheme: ControlScheme): void {
     if (!this.visible || scheme === this.scheme) return;
     this.renderSheet(scheme);
+    const playKey = buttonKey(scheme, "play");
+    for (const key of this.cards.querySelectorAll(".card-key")) {
+      key.textContent = playKey;
+    }
     this.el.dataset.scheme = scheme;
   }
 
