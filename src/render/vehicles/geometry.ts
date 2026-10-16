@@ -41,7 +41,9 @@ const unit = (a: P3): P3 => {
   return l > 1e-12 ? [a[0] / l, a[1] / l, a[2] / l] : [0, 1, 0];
 };
 /** Reflects a point or normal across the z = 0 plane (left/right symmetry). */
-export const mirrorZ = (p: P3): P3 => [p[0], p[1], -p[2]];
+const mirrorZ = (p: P3): P3 => [p[0], p[1], -p[2]];
+/** On the centerline plane z = 0, where the two mirrored halves meet. */
+const onAxis = (p: P3): boolean => Math.abs(p[2]) < 1e-5;
 
 /**
  * Accumulates triangles per material slot (position + normal), then emits one
@@ -151,11 +153,6 @@ export class MeshBuilder {
     this.geometry(slot, unitBox(), matrix);
   }
 
-  /** Total triangle count so far. */
-  get triangles(): number {
-    return this.pos.reduce((sum, p) => sum + p.length / 9, 0);
-  }
-
   /**
    * One mesh per non-empty slot, using `materials[slot]`. Geometry stays
    * non-indexed: a vehicle has ~20k vertices, and indexing would cost more
@@ -231,7 +228,6 @@ export function grid(b: MeshBuilder, g: GridSpec): void {
   const P = g.pts;
   const I = P.length - 1;
   const J = P[0].length - 1;
-  const onAxis = (p: P3) => Math.abs(p[2]) < 1e-5;
   const axisI0 = P[0].every(onAxis);
   const axisI1 = P[I].every(onAxis);
   const axisJ0 = P.every((col) => onAxis(col[0]));
@@ -326,7 +322,6 @@ export function grid(b: MeshBuilder, g: GridSpec): void {
 
 /** Closes a boundary line (+z half) and its mirror image with a flat polygon facing `outward`. */
 function cap(b: MeshBuilder, slot: Slot, half: P3[], outward: P3): void {
-  const onAxis = (p: P3) => Math.abs(p[2]) < 1e-5;
   const ring: P3[] = [...half];
   const last = half.length - 1;
   for (
