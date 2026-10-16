@@ -1913,138 +1913,6 @@ body {
   }
 }
 
-/* Phones in portrait: everything stacks, the scene stays visible up top. */
-@media (max-width: 640px) and (orientation: portrait) {
-  .hud-menu {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(12px, 1fr) auto auto auto;
-    grid-template-areas:
-      "brand"
-      "."
-      "main"
-      "toggles"
-      "foot";
-  }
-
-  .hud-menu > .tg-group {
-    justify-content: flex-start;
-    margin-top: 12px;
-  }
-
-  .menu-foot {
-    margin-top: 12px;
-  }
-
-  .menu-main {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  /* Compact card: one-line eyebrow. */
-  .card-eyebrow {
-    flex-direction: row;
-    gap: 10px;
-  }
-
-  .sheet-rows {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 16px;
-  }
-
-  .sheet-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .sheet-row dt {
-    font-size: 11px;
-  }
-
-  /* The coaching hint sits under the title bar, the how-to below it. */
-  .run-coach {
-    top: calc(var(--safe-t) + var(--edge) + 58px);
-  }
-
-  .run-howto {
-    top: calc(var(--safe-t) + var(--edge) + 116px);
-  }
-}
-
-/* Small portrait phones (360×640 class): tighter vertical rhythm. */
-@media (max-width: 640px) and (orientation: portrait) and (max-height: 720px) {
-  .menu-brand::before {
-    margin-bottom: 12px;
-  }
-
-  .run-howto {
-    padding: 10px 14px 10px 12px;
-    gap: 5px;
-  }
-
-  .run-howto li {
-    font-size: 12px;
-    line-height: 1.35;
-  }
-
-  .hud-card {
-    padding: 16px 16px 14px;
-  }
-
-  .rc-title {
-    font-size: 28px;
-  }
-
-  .rc-head {
-    margin-top: 8px;
-  }
-
-  .rc-sub {
-    margin-top: 8px;
-  }
-
-  .rc-body {
-    margin-top: 12px;
-    padding-top: 10px;
-    gap: 6px;
-  }
-
-  .rc-breakdown,
-  .rc-stats {
-    gap: 4px;
-  }
-
-  .rc-stats {
-    padding-top: 6px;
-  }
-
-  .rc-score {
-    margin-top: 10px;
-    padding-top: 10px;
-  }
-
-  .rc-total-val {
-    font-size: 30px;
-  }
-
-  .rc-actions {
-    margin-top: 12px;
-    gap: 8px;
-  }
-
-  .rc-actions .hud-btn {
-    min-height: 42px;
-  }
-}
-
-/* Phones in portrait: the rotate hint shows in the how-to card. */
-@media (orientation: portrait) {
-  .hud-run.is-touch .howto-rotate {
-    display: grid;
-  }
-}
-
 /* Short landscape screens (phones held sideways). */
 @media (max-height: 520px) and (orientation: landscape) {
   .hud-root {
@@ -2053,6 +1921,10 @@ body {
 
   .menu-brand::before {
     margin-bottom: 10px;
+  }
+
+  .wordmark {
+    font-size: clamp(16px, 7.1cqi, 26px);
   }
 
   .menu-sub {
@@ -2068,6 +1940,15 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr minmax(200px, 0.82fr);
     gap: 10px;
+  }
+
+  /* On touch the controls sheet goes and the cards take its column. */
+  .hud-menu[data-scheme="touch"] .menu-main {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hud-menu[data-scheme="touch"] .menu-sheet {
+    display: none;
   }
 
   .menu-cards {
@@ -2199,6 +2080,20 @@ body {
     font-size: 24px;
   }
 
+  /* Touch: the slim bar stays bottom-centre between the thumbs. */
+  .hud-run.is-touch .run-cluster {
+    width: min(360px, calc(100% - var(--safe-l) - var(--safe-r) - 300px));
+  }
+
+  .hud-run.is-touch .run-air {
+    top: calc(var(--safe-t) + var(--edge) + 46px);
+    bottom: auto;
+  }
+
+  .hud-run.is-touch .run-coach {
+    top: calc(var(--safe-t) + var(--edge) + 4px);
+  }
+
   .hud-popups {
     top: 22%;
   }
@@ -2299,6 +2194,347 @@ body {
   }
 }
 
+/* Tiny landscape windows (split screens): stack the header, cards side by side, sheet below. */
+@media (max-height: 520px) and (orientation: landscape) and (max-width: 600px) {
+  .hud-menu {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(12px, 1fr) auto auto;
+    grid-template-areas:
+      "brand"
+      "toggles"
+      "."
+      "main"
+      "foot";
+  }
+
+  .hud-menu > .tg-group {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+
+  .menu-main {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .menu-sheet {
+    grid-column: 1 / -1;
+  }
+}
+
+/*
+ * Container queries: the stunt cards and the controls sheet compact themselves
+ * at every column width between the layout breakpoints (no buttons or keys
+ * spilling out, no labels broken mid-word). Order matters: the card rules
+ * refine the short landscape cards above and give way to the phone-portrait
+ * cards below; the sheet rules refine the phone-portrait rows.
+ *
+ * Narrow cards: smaller art and title; PLAY wraps under BEST if it must.
+ */
+@container (max-width: 290px) {
+  .card-head {
+    gap: 8px;
+  }
+
+  .card-art {
+    width: 64px;
+    height: 32px;
+  }
+
+  .card-title {
+    font-size: 22px;
+    letter-spacing: 0.1em;
+  }
+
+  .card-foot {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-play {
+    padding: 0 14px 0 16px;
+  }
+
+  .card-play:focus-visible .card-key {
+    display: none !important;
+  }
+}
+
+@container (max-width: 210px) {
+  .card-art {
+    display: none;
+  }
+
+  .card-title {
+    font-size: 19px;
+  }
+
+  .card-play {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
+/*
+ * Phones in portrait: everything stacks and the scene stays visible up top.
+ * Each stunt card collapses to two lines ("STUNT 01 · THE CURL … BEST" over
+ * "BACKFLIP … PLAY") and the controls sheet folds away (hidden on touch, where
+ * the on-screen buttons explain themselves).
+ */
+@media (max-width: 640px) and (orientation: portrait) {
+  .hud-menu {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(12px, 1fr) auto auto auto;
+    grid-template-areas:
+      "brand"
+      "."
+      "main"
+      "toggles"
+      "foot";
+  }
+
+  .hud-menu > .tg-group {
+    justify-content: flex-start;
+    margin-top: 12px;
+  }
+
+  .menu-sub {
+    margin-top: 10px;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+  }
+
+  .menu-foot {
+    margin-top: 12px;
+  }
+
+  .menu-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stunt-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "head best"
+      "title play";
+    align-items: center;
+    gap: 6px 12px;
+    padding: 12px 14px;
+  }
+
+  .card-head {
+    grid-area: head;
+    min-width: 0;
+  }
+
+  .card-eyebrow {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .card-art,
+  .card-tagline {
+    display: none;
+  }
+
+  .card-title {
+    grid-area: title;
+    margin: 0;
+    font-size: clamp(18px, 7cqi, 23px);
+  }
+
+  .card-foot {
+    display: contents;
+  }
+
+  .card-best {
+    grid-area: best;
+    flex-direction: row;
+    align-items: baseline;
+    justify-self: end;
+    gap: 6px;
+  }
+
+  .card-best .hud-label {
+    font-size: 8.5px;
+  }
+
+  .card-best-val {
+    font-size: 14px;
+  }
+
+  .card-play {
+    grid-area: play;
+    justify-self: end;
+    min-height: 38px;
+    padding: 0 14px 0 16px;
+  }
+
+  .menu-sheet {
+    padding: 10px 14px;
+  }
+
+  .sheet-head {
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+
+  .sheet-scheme {
+    margin-left: auto;
+  }
+
+  /* Chevron: points down while folded, up while open. */
+  .sheet-head::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin: 0 2px 3px 12px;
+    border-right: 1.5px solid var(--hud-dim);
+    border-bottom: 1.5px solid var(--hud-dim);
+    transform: rotate(45deg);
+    transition: transform 0.2s;
+  }
+
+  .sheet-fold[open] > .sheet-head::after {
+    margin-bottom: -3px;
+    transform: rotate(-135deg);
+  }
+
+  .hud-menu[data-scheme="touch"] .menu-sheet {
+    display: none;
+  }
+
+  .sheet-rows {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+  }
+
+  .sheet-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .sheet-row dt {
+    font-size: 11px;
+  }
+
+  .tg {
+    height: 36px;
+    padding: 0 12px 0 10px;
+  }
+
+  .tg-seg {
+    height: 28px;
+  }
+
+  /* The coaching hint sits under the title bar, the how-to below it. */
+  .run-coach {
+    top: calc(var(--safe-t) + var(--edge) + 58px);
+  }
+
+  .run-howto {
+    top: calc(var(--safe-t) + var(--edge) + 116px);
+  }
+}
+
+/* Narrow controls sheet: compact keycaps that wrap under their label if needed. */
+@container (max-width: 250px) {
+  .sheet-row {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .sheet-row dt {
+    font-size: 11px;
+    white-space: normal;
+  }
+
+  .sheet-row dd {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: auto;
+    gap: 3px;
+  }
+
+  .sheet-row .hud-key {
+    height: 19px;
+    min-width: 19px;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+}
+
+/* Small portrait phones (360×640 class): tighter vertical rhythm. */
+@media (max-width: 640px) and (orientation: portrait) and (max-height: 720px) {
+  .menu-brand::before {
+    margin-bottom: 12px;
+  }
+
+  .run-howto {
+    padding: 10px 14px 10px 12px;
+    gap: 5px;
+  }
+
+  .run-howto li {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .hud-card {
+    padding: 16px 16px 14px;
+  }
+
+  .rc-title {
+    font-size: 28px;
+  }
+
+  .rc-head {
+    margin-top: 8px;
+  }
+
+  .rc-sub {
+    margin-top: 8px;
+  }
+
+  .rc-body {
+    margin-top: 12px;
+    padding-top: 10px;
+    gap: 6px;
+  }
+
+  .rc-breakdown,
+  .rc-stats {
+    gap: 4px;
+  }
+
+  .rc-stats {
+    padding-top: 6px;
+  }
+
+  .rc-score {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .rc-total-val {
+    font-size: 30px;
+  }
+
+  .rc-actions {
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .rc-actions .hud-btn {
+    min-height: 42px;
+  }
+}
+
 /* Large desktop screens: scale the overlay up a step (zoom keeps text crisp). */
 @media (min-width: 1680px) and (min-height: 940px) {
   .hud-menu,
@@ -2309,121 +2545,13 @@ body {
   }
 }
 
-/* ---------------------------------------------------------------- keyframes */
-@keyframes hud-fade {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes hud-rise {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-}
-
-@keyframes hud-rise-x {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 18px);
-  }
-}
-
-@keyframes hud-drop {
-  from {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
-}
-
-@keyframes hud-track-in {
-  from {
-    opacity: 0;
-    letter-spacing: 0.7em;
-  }
-}
-
-@keyframes hud-card-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.97);
-  }
-}
-
-@keyframes hud-pop-in {
-  from {
-    opacity: 0;
-    transform: scale(1.45);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes hud-pop-out {
-  to {
-    opacity: 0;
-    transform: translateY(-16px) scale(0.96);
-  }
-}
-
-@keyframes hud-bar-in {
-  to {
-    transform: skewX(-20deg) scaleX(1);
-  }
-}
-
-@keyframes hud-pulse {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0.32;
-  }
-}
-
-@keyframes hud-hint-glow {
-  0%,
-  100% {
-    border-color: var(--hud-line);
-  }
-  50% {
-    border-color: rgba(255, 255, 255, 0.5);
-  }
-}
-
-@keyframes hud-new-best {
-  0%,
-  100% {
-    box-shadow: 0 0 14px rgba(255, 42, 42, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(255, 42, 42, 0.8);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hud-root *,
-  .hud-root *::before,
-  .hud-root *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
-  }
-
-  .popup {
-    animation: hud-pop-out 0.3s ease-in calc(var(--life) - 0.3s) forwards !important;
-  }
-}
-
 /* ------------------------------------------------------------ compact touch */
 /*
  * Phones (portrait, or landscape with a short screen): keep the scene visible.
  * The speed / gas readout collapses into one slim bar, the airborne panel into
  * a small pill, and the title row shrinks. The bottom corners stay with the
- * on-screen controls (src/input/touch.css).
+ * on-screen controls (src/input/touch.css). Short landscape placement lives
+ * in the short landscape block above.
  */
 @media (orientation: portrait), (max-height: 520px) {
   .hud-run.is-touch {
@@ -2612,6 +2740,10 @@ body {
     top: calc(var(--safe-t) + var(--edge) + 98px);
   }
 
+  .hud-run.is-touch .howto-rotate {
+    display: grid;
+  }
+
   .hud-run.is-touch .run-coach {
     top: calc(var(--safe-t) + var(--edge) + 172px);
   }
@@ -2627,254 +2759,111 @@ body {
   }
 }
 
-/* Short landscape: the slim bar stays bottom-centre between the thumbs. */
-@media (max-height: 520px) and (orientation: landscape) {
-  .hud-run.is-touch .run-cluster {
-    width: min(360px, calc(100% - var(--safe-l) - var(--safe-r) - 300px));
-  }
-
-  .hud-run.is-touch .run-air {
-    top: calc(var(--safe-t) + var(--edge) + 46px);
-    bottom: auto;
-  }
-
-  .hud-run.is-touch .run-coach {
-    top: calc(var(--safe-t) + var(--edge) + 4px);
+/* ---------------------------------------------------------------- keyframes */
+@keyframes hud-fade {
+  from {
+    opacity: 0;
   }
 }
 
-/* ---------------------------------------------------------------- menu fit */
-/*
- * The wordmark, the stunt cards and the controls sheet size themselves with
- * container queries, so every column width between the layout breakpoints
- * stays tidy: no buttons or keys spilling out, no labels broken mid-word.
- */
-@media (max-height: 520px) and (orientation: landscape) {
-  .wordmark {
-    font-size: clamp(16px, 7.1cqi, 26px);
+@keyframes hud-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
   }
 }
 
-/* Narrow cards: smaller art and title; PLAY wraps under BEST if it must. */
-@container (max-width: 290px) {
-  .card-head {
-    gap: 8px;
-  }
-
-  .card-art {
-    width: 64px;
-    height: 32px;
-  }
-
-  .card-title {
-    font-size: 22px;
-    letter-spacing: 0.1em;
-  }
-
-  .card-foot {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .card-play {
-    padding: 0 14px 0 16px;
-  }
-
-  .card-play:focus-visible .card-key {
-    display: none !important;
+@keyframes hud-rise-x {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 18px);
   }
 }
 
-@container (max-width: 210px) {
-  .card-art {
-    display: none;
-  }
-
-  .card-title {
-    font-size: 19px;
-  }
-
-  .card-play {
-    flex: 1 1 100%;
-    justify-content: center;
+@keyframes hud-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
   }
 }
 
-/* Narrow controls sheet: compact keycaps that wrap under their label if needed. */
-@container (max-width: 250px) {
-  .sheet-row {
-    flex-wrap: wrap;
-    gap: 4px 8px;
-  }
-
-  .sheet-row dt {
-    font-size: 11px;
-    white-space: normal;
-  }
-
-  .sheet-row dd {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    margin-left: auto;
-    gap: 3px;
-  }
-
-  .sheet-row .hud-key {
-    height: 19px;
-    min-width: 19px;
-    padding: 0 4px;
-    font-size: 9px;
+@keyframes hud-track-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.7em;
   }
 }
 
-/* Tiny landscape windows (split screens): stack the header, cards side by side, sheet below. */
-@media (max-height: 520px) and (orientation: landscape) and (max-width: 600px) {
-  .hud-menu {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(12px, 1fr) auto auto;
-    grid-template-areas:
-      "brand"
-      "toggles"
-      "."
-      "main"
-      "foot";
-  }
-
-  .hud-menu > .tg-group {
-    justify-content: flex-start;
-    margin-top: 10px;
-  }
-
-  .menu-main {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .menu-sheet {
-    grid-column: 1 / -1;
+@keyframes hud-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
   }
 }
 
-/* ------------------------------------------------------------ compact menu */
-/*
- * Phones: each stunt card collapses to two lines ("STUNT 01 · THE CURL … BEST"
- * over "BACKFLIP … PLAY") and the controls sheet folds away (hidden on touch,
- * where the on-screen buttons explain themselves) so the attract demo stays
- * visible behind the menu.
- */
-@media (max-width: 640px) and (orientation: portrait) {
-  .menu-sub {
-    margin-top: 10px;
-    font-size: 9.5px;
-    letter-spacing: 0.18em;
+@keyframes hud-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(1.45);
   }
-
-  .stunt-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "head best"
-      "title play";
-    align-items: center;
-    gap: 6px 12px;
-    padding: 12px 14px;
-  }
-
-  .card-head {
-    grid-area: head;
-    min-width: 0;
-  }
-
-  .card-art,
-  .card-tagline {
-    display: none;
-  }
-
-  .card-title {
-    grid-area: title;
-    margin: 0;
-    font-size: clamp(18px, 7cqi, 23px);
-  }
-
-  .card-foot {
-    display: contents;
-  }
-
-  .card-best {
-    grid-area: best;
-    flex-direction: row;
-    align-items: baseline;
-    justify-self: end;
-    gap: 6px;
-  }
-
-  .card-best .hud-label {
-    font-size: 8.5px;
-  }
-
-  .card-best-val {
-    font-size: 14px;
-  }
-
-  .card-play {
-    grid-area: play;
-    justify-self: end;
-    min-height: 38px;
-    padding: 0 14px 0 16px;
-  }
-
-  .menu-sheet {
-    padding: 10px 14px;
-  }
-
-  .sheet-head {
-    justify-content: flex-start;
-    align-items: center;
-    margin-bottom: 10px;
-    cursor: pointer;
-  }
-
-  .sheet-scheme {
-    margin-left: auto;
-  }
-
-  /* Chevron: points down while folded, up while open. */
-  .sheet-head::after {
-    content: "";
-    width: 6px;
-    height: 6px;
-    margin: 0 2px 3px 12px;
-    border-right: 1.5px solid var(--hud-dim);
-    border-bottom: 1.5px solid var(--hud-dim);
-    transform: rotate(45deg);
-    transition: transform 0.2s;
-  }
-
-  .sheet-fold[open] > .sheet-head::after {
-    margin-bottom: -3px;
-    transform: rotate(-135deg);
-  }
-
-  .hud-menu[data-scheme="touch"] .menu-sheet {
-    display: none;
-  }
-
-  .tg {
-    height: 36px;
-    padding: 0 12px 0 10px;
-  }
-
-  .tg-seg {
-    height: 28px;
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-/* Phones in landscape: on touch the controls sheet goes and the cards take its column. */
-@media (max-height: 520px) and (orientation: landscape) {
-  .hud-menu[data-scheme="touch"] .menu-sheet {
-    display: none;
+@keyframes hud-pop-out {
+  to {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+}
+
+@keyframes hud-bar-in {
+  to {
+    transform: skewX(-20deg) scaleX(1);
+  }
+}
+
+@keyframes hud-pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.32;
+  }
+}
+
+@keyframes hud-hint-glow {
+  0%,
+  100% {
+    border-color: var(--hud-line);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+@keyframes hud-new-best {
+  0%,
+  100% {
+    box-shadow: 0 0 14px rgba(255, 42, 42, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 42, 42, 0.8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-root *,
+  .hud-root *::before,
+  .hud-root *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
   }
 
-  .hud-menu[data-scheme="touch"] .menu-main {
-    grid-template-columns: 1fr 1fr;
+  .popup {
+    animation: hud-pop-out 0.3s ease-in calc(var(--life) - 0.3s) forwards !important;
   }
 }
