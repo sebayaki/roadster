@@ -14,7 +14,7 @@ import { kickflipLevel, OUTLINE_BASE } from "@/levels/kickflip";
 import { GLOW, PALETTE } from "@/render/palette";
 import { buildLineup, createVehicle } from "@/render/vehicles-model";
 import { distanceOutside } from "@/render/vehicles/specs";
-import { runHarness, type View } from "./harness";
+import { meshStats, runHarness, type View } from "./harness";
 
 const params = new URLSearchParams(location.search);
 const obstacles = kickflipLevel.obstacles;
@@ -155,16 +155,12 @@ function report(root: THREE.Object3D, list: Obstacle[]): void {
   for (const o of list) {
     if (o.kind === "stage") continue;
     const node = root.getObjectByName(o.id) ?? root;
-    let triangles = 0;
-    let draws = 0;
+    const { calls, triangles } = meshStats(node);
     let worst = 0;
     const box = new THREE.Box3();
     node.traverse((m) => {
       if (!(m instanceof THREE.Mesh)) return;
-      const geo = m.geometry;
-      const pos = geo.getAttribute("position");
-      triangles += (geo.index ? geo.index.count : pos.count) / 3;
-      draws++;
+      const pos = m.geometry.getAttribute("position");
       for (let i = 0; i < pos.count; i++) {
         v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
         box.expandByPoint(v);
@@ -178,7 +174,7 @@ function report(root: THREE.Object3D, list: Obstacle[]): void {
     const fmt = (a: number, b: number, c: number) =>
       [a, b, c].map((n) => n.toFixed(3)).join("x");
     console.log(
-      `${o.id}: triangles=${triangles} draws=${draws} ` +
+      `${o.id}: triangles=${triangles} draws=${calls} ` +
         `size=${fmt(size.x, size.y, size.z)} obstacle=${fmt(o.sizeX, o.sizeY, o.sizeZ)} ` +
         `polygonOut=${worst.toFixed(3)}m`
     );

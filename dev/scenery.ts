@@ -7,7 +7,7 @@
  * White placeholder boxes (the Roadster's 4.45 × 1.12 × 2.0 m) give scale.
  */
 import * as THREE from "three";
-import { runHarness, type View } from "./harness";
+import { meshStats, runHarness, type View } from "./harness";
 import { CAR } from "@/core/car-spec";
 import type { LevelId, Vec3 } from "@/core/types";
 import { getLevel } from "@/levels";
@@ -103,8 +103,7 @@ function onProfile(box: THREE.Mesh, s: number): Vec3 {
 
 /** Worst case cost of the scenery (every object, regardless of the view frustum). */
 function logStats(root: THREE.Object3D): void {
-  let calls = 0;
-  let triangles = 0;
+  const { calls, triangles } = meshStats(root);
   let lights = 0;
   let shadows = 0;
   root.traverse((o) => {
@@ -112,23 +111,9 @@ function logStats(root: THREE.Object3D): void {
       lights++;
       if (o.castShadow) shadows++;
     }
-    if (!(o instanceof THREE.Mesh || o instanceof THREE.Line) || !o.visible) {
-      return;
-    }
-    calls++;
-    if (!(o instanceof THREE.Mesh)) return;
-    const g = o.geometry as THREE.BufferGeometry;
-    const vertices = g.index ? g.index.count : g.getAttribute("position").count;
-    const copies =
-      o instanceof THREE.InstancedMesh
-        ? o.count
-        : g instanceof THREE.InstancedBufferGeometry
-          ? g.instanceCount
-          : 1;
-    triangles += (vertices / 3) * copies;
   });
   console.log(
-    `[stats] calls=${calls} triangles=${Math.round(triangles)} lights=${lights} shadowCasters=${shadows}`
+    `[stats] calls=${calls} triangles=${triangles} lights=${lights} shadowCasters=${shadows}`
   );
 }
 

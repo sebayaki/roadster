@@ -11,7 +11,7 @@
  * The model's draw calls and triangles are logged on load.
  */
 import * as THREE from "three";
-import { runHarness, type View } from "./harness";
+import { meshStats, runHarness, type View } from "./harness";
 import { CAR } from "@/core/car-spec";
 import { GLOW } from "@/render/palette";
 import {
@@ -94,20 +94,6 @@ function asphaltTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-function logStats(root: THREE.Object3D): void {
-  let calls = 0;
-  let tris = 0;
-  root.traverse((o) => {
-    if (!(o instanceof THREE.Mesh) || !o.visible) return;
-    const g = o.geometry;
-    const n = (g.index ? g.index.count : g.getAttribute("position").count) / 3;
-    const count = o instanceof THREE.InstancedMesh ? o.count : 1;
-    calls += 1;
-    tris += n * count;
-  });
-  console.log(`[roadster] draw calls ${calls}, triangles ${Math.round(tris)}`);
-}
-
 void runHarness({
   views,
   setup({ scene, quality }) {
@@ -163,7 +149,8 @@ void runHarness({
     scene.add(model.root);
     model.update(0, state);
     model.root.updateMatrixWorld(true);
-    logStats(model.root);
+    const { calls, triangles } = meshStats(model.root);
+    console.log(`[roadster] draw calls ${calls}, triangles ${triangles}`);
   },
   update(dt) {
     if (!model) return;

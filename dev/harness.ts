@@ -33,6 +33,33 @@ export function camParam(params: URLSearchParams): View | null {
     : null;
 }
 
+/**
+ * Draw calls (one per visible mesh or line) and triangles (instanced copies
+ * included) under `root`, whatever the view frustum.
+ */
+export function meshStats(root: THREE.Object3D): {
+  calls: number;
+  triangles: number;
+} {
+  let calls = 0;
+  let triangles = 0;
+  root.traverseVisible((o) => {
+    if (!(o instanceof THREE.Mesh || o instanceof THREE.Line)) return;
+    calls++;
+    if (!(o instanceof THREE.Mesh)) return;
+    const g = o.geometry as THREE.BufferGeometry;
+    const vertices = g.index ? g.index.count : g.getAttribute("position").count;
+    const copies =
+      o instanceof THREE.InstancedMesh
+        ? o.count
+        : g instanceof THREE.InstancedBufferGeometry
+          ? g.instanceCount
+          : 1;
+    triangles += (vertices / 3) * copies;
+  });
+  return { calls, triangles: Math.round(triangles) };
+}
+
 export interface HarnessContext {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
