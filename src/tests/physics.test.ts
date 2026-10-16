@@ -6,7 +6,7 @@ import { backflipLevel } from "@/levels/backflip";
 import { kickflipLevel } from "@/levels/kickflip";
 import { CarPhysics } from "@/physics/car-physics";
 import { TUNING } from "@/physics/tuning";
-import { autopilotDriver, IDLE, simulate } from "./sim";
+import { autopilotDriver, count, first, IDLE, ofType, simulate } from "./sim";
 
 const GAS: Controls = { ...IDLE, throttle: 1 };
 
@@ -104,8 +104,8 @@ describe("thrusters", () => {
     expect(p.car.gas).toBeCloseTo(expectedGas, 1);
     const more = run(p, kickflipLevel.gasCapacity, { ...IDLE, thrust: true });
     expect(p.car.gas).toBe(0);
-    expect(more.filter((e) => e.type === "gasEmpty")).toHaveLength(1);
-    expect(more.some((e) => e.type === "thrustStop")).toBe(true);
+    expect(count(more, "gasEmpty")).toBe(1);
+    expect(count(more, "thrustStop")).toBeGreaterThan(0);
     expect(p.car.thrusters).toEqual([0, 0, 0, 0]);
   });
 
@@ -156,8 +156,8 @@ describe("run flow", () => {
     expect(physics.car.mode).toBe("grounded");
     expect(physics.car.throttle).toBe(0);
     expect(Math.abs(physics.car.speed)).toBeLessThan(TUNING.landSettleSpeed);
-    expect(after.filter((e) => e.type === "settled")).toHaveLength(1);
-    expect(after.some((e) => e.type === "launch")).toBe(false);
+    expect(count(after, "settled")).toBe(1);
+    expect(count(after, "launch")).toBe(0);
   });
 
   it("reset() returns to the spawn and clears pending events", () => {
@@ -177,20 +177,18 @@ describe("run flow", () => {
     const events = run(p, 0.6, { ...IDLE, thrust: true });
     events.push(...run(p, 0.85, { ...IDLE, spin: 1 }));
     events.push(...run(p, 8, IDLE));
-    const crash = events.find((e) => e.type === "crash");
-    expect(crash).toBeDefined();
+    expect(first(events, "crash")).toBeDefined();
     expect(p.car.mode).toBe("crashed");
-    expect(events.filter((e) => e.type === "settled")).toHaveLength(1);
+    expect(count(events, "settled")).toBe(1);
     expect(p.car.position.y).toBeGreaterThan(0);
     expect(p.car.position.y).toBeLessThan(2);
     const q = p.car.quaternion;
     expect(Math.hypot(q.x, q.y, q.z, q.w)).toBeCloseTo(1, 6);
-    const impacts = events.filter((e) => e.type === "impact");
+    const impacts = ofType(events, "impact");
     expect(impacts.length).toBeGreaterThan(0);
-    for (const e of impacts)
-      if (e.type === "impact") {
-        expect(e.intensity).toBeGreaterThan(0);
-        expect(e.intensity).toBeLessThanOrEqual(1);
-      }
+    for (const e of impacts) {
+      expect(e.intensity).toBeGreaterThan(0);
+      expect(e.intensity).toBeLessThanOrEqual(1);
+    }
   });
 });

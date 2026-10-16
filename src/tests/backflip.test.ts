@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CAR } from "@/core/car-spec";
-import { GRAVITY, TAU } from "@/core/math";
+import { GRAVITY, offFullTurn } from "@/core/math";
 import type { CarSnapshot, Controls } from "@/core/types";
 import { backflipLevel } from "@/levels/backflip";
 import {
@@ -9,7 +9,10 @@ import {
   cruise,
   first,
   IDLE,
+  ofType,
   simulate,
+  speedBand,
+  untilRunEnds,
   untilSettled,
   type Driver,
 } from "./sim";
@@ -24,10 +27,9 @@ function humanAir(hold: number, thrustHeight = 12): Driver {
     if (launchTime < 0) launchTime = time;
     const t = time - launchTime;
     const spin = t >= 0.15 && t < 0.15 + hold ? -1 : 0;
-    const upright = Math.abs(car.pitch - TAU * Math.round(car.pitch / TAU));
     if (
       !thrusting &&
-      upright < 0.5 &&
+      offFullTurn(car.pitch) < 0.5 &&
       car.heightAboveGround < thrustHeight &&
       car.velocity.y < -4
     )
@@ -39,7 +41,7 @@ function humanAir(hold: number, thrustHeight = 12): Driver {
 
 function trickOf(kmh: number, hold: number): string {
   const { events } = simulate(level, cruise(kmh, humanAir(hold)), {
-    until: (e) => e.type === "land" || e.type === "crash",
+    until: untilRunEnds,
   });
   const land = first(events, "land");
   return land ? land.result.trick.name : "WRECK";
@@ -65,7 +67,7 @@ describe("backflip: the autopilot proves the tuning", () => {
     expect(r.goalMet).toBe(true);
     if (style === "clean") expect(["perfect", "great"]).toContain(r.grade);
     // One flip event per completed turn, all before the touchdown.
-    const flips = events.filter((e) => e.type === "flip");
+    const flips = ofType(events, "flip");
     expect(flips).toEqual(
       Array.from({ length: turns }, (_, i) => ({
         type: "flip",
@@ -89,8 +91,7 @@ describe("backflip: the autopilot proves the tuning", () => {
 
 describe("backflip: human-like inputs", () => {
   it("lands a single across the HUD speed band with a forgiving release", () => {
-    const [lo, hi] = level.speedHint.map((v) => v * 3.6);
-    for (const kmh of [lo, (lo + hi) / 2, hi]) {
+    for (const kmh of speedBand(level)) {
       // Any ◀ hold between 0.7 s and 1.3 s works at every speed in the band.
       for (const hold of [0.7, 0.85, 1, 1.15, 1.3])
         expect(trickOf(kmh, hold), `${kmh} km/h, ${hold} s`).toBe("BACKFLIP");
@@ -122,7 +123,7 @@ describe("backflip: human-like inputs", () => {
 
   it("wrecks when landing without thrust", () => {
     const { events } = simulate(level, cruise(95, humanAir(0.9, -1)), {
-      until: (e) => e.type === "crash" || e.type === "land",
+      until: untilRunEnds,
     });
     const crash = first(events, "crash");
     expect(crash?.reason).toBe("impact");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TAU } from "@/core/math";
+import { offFullTurn } from "@/core/math";
 import type { Controls } from "@/core/types";
 import { kickflipLevel, LINEUP_START_X } from "@/levels/kickflip";
 import {
@@ -7,8 +7,11 @@ import {
   count,
   cruise,
   first,
+  gasBelow,
   IDLE,
+  ofType,
   simulate,
+  untilRunEnds,
   untilSettled,
   type Driver,
 } from "./sim";
@@ -25,7 +28,7 @@ function human(liftX: number, burst: number, hold = 0, dir = -1): Driver {
   return (car, time) => {
     const c: Controls = { ...IDLE };
     if (liftTime < 0) {
-      c.throttle = car.speed * 3.6 < 70 ? 1 : 0;
+      c.throttle = gasBelow(car, 70);
       if (car.position.x < liftX) return c;
       liftTime = time;
     }
@@ -33,11 +36,10 @@ function human(liftX: number, burst: number, hold = 0, dir = -1): Driver {
     if (t < burst) return { ...c, throttle: 0, thrust: true };
     const r = t - burst - 0.1;
     if (r >= 0 && r < hold) c.spin = dir;
-    const upright = Math.abs(car.roll - TAU * Math.round(car.roll / TAU));
     if (
       !thrusting &&
       r > hold &&
-      upright < 0.5 &&
+      offFullTurn(car.roll) < 0.5 &&
       car.heightAboveGround < 6 &&
       car.velocity.y < -3
     )
@@ -47,9 +49,6 @@ function human(liftX: number, burst: number, hold = 0, dir = -1): Driver {
     return c;
   };
 }
-
-const endOfRun = (e: { type: string }) =>
-  e.type === "land" || e.type === "crash";
 
 describe("kickflip: the autopilot proves the tuning", () => {
   it.each([
@@ -74,8 +73,7 @@ describe("kickflip: the autopilot proves the tuning", () => {
     expect(r.goalMet).toBe(true);
     expect(land!.position.x).toBeGreaterThanOrEqual(level.goal.minTouchdownX!);
     if (style === "clean") expect(["perfect", "great"]).toContain(r.grade);
-    const flips = events.filter((e) => e.type === "flip");
-    expect(flips.map((f) => f.type === "flip" && f.axis)).toEqual(
+    expect(ofType(events, "flip").map((f) => f.axis)).toEqual(
       Array(-turns).fill("roll")
     );
     expect(events.at(-1)?.type).toBe("settled");
@@ -89,7 +87,7 @@ describe("kickflip: human-like inputs", () => {
       [1, "HEELFLIP"],
     ] as const) {
       const { events } = simulate(level, human(-26, 0.75, 1.35, dir), {
-        until: endOfRun,
+        until: untilRunEnds,
       });
       const land = first(events, "land");
       expect(land?.result.trick.name).toBe(name);
@@ -112,7 +110,9 @@ describe("kickflip: human-like inputs", () => {
   });
 
   it("hits the Semi when the lift-off is too low", () => {
-    const { events } = simulate(level, human(-22, 0.35), { until: endOfRun });
+    const { events } = simulate(level, human(-22, 0.35), {
+      until: untilRunEnds,
+    });
     const crash = first(events, "crash");
     expect(crash?.reason).toBe("obstacle");
     expect(crash?.obstacle).toBe("Semi");

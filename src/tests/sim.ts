@@ -4,7 +4,7 @@ import type {
   LevelDef,
   PhysicsEvent,
 } from "@/core/types";
-import { TAU } from "@/core/math";
+import { offFullTurn, TAU } from "@/core/math";
 import { createAutopilot, type AutopilotStyle } from "@/physics/autopilot";
 import { CarPhysics } from "@/physics/car-physics";
 
@@ -71,37 +71,55 @@ export function autopilotDriver(
   return (car, _time, dt) => pilot(car, dt);
 }
 
-/**
- * Keyboard-style driver: full gas below `kmh` (and all the way up a ramp), then hands
- * over to `air` once airborne.
- */
+/** Keyboard-style gas: full throttle below `kmh`, and all the way up a ramp. */
+export function gasBelow(car: CarSnapshot, kmh: number): number {
+  return car.onRamp || car.speed * 3.6 < kmh ? 1 : 0;
+}
+
+/** Keyboard-style driver: gasBelow(`kmh`), then hands over to `air` once airborne. */
 export function cruise(kmh: number, air: Driver = () => IDLE): Driver {
-  return (car, time, dt) => {
-    if (car.mode !== "grounded") return air(car, time, dt);
-    const below = car.speed * 3.6 < kmh;
-    return {
-      throttle: car.onRamp || below ? 1 : 0,
-      brake: 0,
-      thrust: false,
-      spin: 0,
-    };
-  };
+  return (car, time, dt) =>
+    car.mode === "grounded"
+      ? { ...IDLE, throttle: gasBelow(car, kmh) }
+      : air(car, time, dt);
+}
+
+type EventOf<T extends PhysicsEvent["type"]> = Extract<
+  PhysicsEvent,
+  { type: T }
+>;
+
+/** Every event of one type, in order. */
+export function ofType<T extends PhysicsEvent["type"]>(
+  events: PhysicsEvent[],
+  type: T
+): EventOf<T>[] {
+  return events.filter((e): e is EventOf<T> => e.type === type);
 }
 
 export function first<T extends PhysicsEvent["type"]>(
   events: PhysicsEvent[],
   type: T
-): Extract<PhysicsEvent, { type: T }> | undefined {
-  return events.find((e) => e.type === type) as
-    Extract<PhysicsEvent, { type: T }> | undefined;
+): EventOf<T> | undefined {
+  return events.find((e): e is EventOf<T> => e.type === type);
 }
 
 export function count(events: PhysicsEvent[], type: PhysicsEvent["type"]) {
-  return events.filter((e) => e.type === type).length;
+  return ofType(events, type).length;
 }
 
 /** Stops the simulation once the run produced `settled`. */
 export const untilSettled: SimOptions["until"] = (e) => e.type === "settled";
+
+/** Stops the simulation once the run ends: a scored landing or a crash. */
+export const untilRunEnds: SimOptions["until"] = (e) =>
+  e.type === "land" || e.type === "crash";
+
+/** Bottom, middle and top of the level's HUD speed band (km/h). */
+export function speedBand(level: LevelDef): number[] {
+  const [lo, hi] = level.speedHint.map((v) => v * 3.6);
+  return [lo, (lo + hi) / 2, hi];
+}
 
 /** A player for reactiveHuman(): what they aim for and how late they react. */
 export interface HumanPlan {
@@ -135,7 +153,7 @@ export function reactiveHuman(level: LevelDef, plan: HumanPlan): Driver {
     const air = car.mode === "airborne";
     launched ||= air;
     if (!launched) {
-      c.throttle = car.onRamp || car.speed * 3.6 < plan.kmh ? 1 : 0;
+      c.throttle = gasBelow(car, plan.kmh);
       if (plan.liftX !== undefined && car.position.x >= plan.liftX)
         c.thrust = true;
     } else if (air) {
@@ -145,7 +163,7 @@ export function reactiveHuman(level: LevelDef, plan: HumanPlan): Driver {
       lifted ||= plan.liftX === undefined || h > (plan.liftHeight ?? 3);
       released ||= Math.abs(angle) >= TAU + plan.release;
       if (!released && (pitchAxis || h > 2.5)) c.spin = plan.dir;
-      const upright = Math.abs(tilt - TAU * Math.round(tilt / TAU)) < 0.6;
+      const upright = offFullTurn(tilt) < 0.6;
       c.thrust =
         !lifted || (released && upright && car.velocity.y < -2.5 && h < 12);
     }

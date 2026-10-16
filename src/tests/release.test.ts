@@ -3,7 +3,14 @@ import { DEG, TAU } from "@/core/math";
 import type { LevelDef } from "@/core/types";
 import { backflipLevel } from "@/levels/backflip";
 import { kickflipLevel } from "@/levels/kickflip";
-import { first, reactiveHuman, simulate, type HumanPlan } from "./sim";
+import {
+  first,
+  reactiveHuman,
+  simulate,
+  speedBand,
+  untilRunEnds,
+  type HumanPlan,
+} from "./sim";
 
 /** Reaction delays (s) of the simulated players. */
 const DELAYS = [0.15, 0.2, 0.25];
@@ -12,19 +19,13 @@ const WINDOW = [-80, -60, -40, -20, 0, 10].map((deg) => deg * DEG);
 
 function play(level: LevelDef, plan: HumanPlan) {
   const { events } = simulate(level, reactiveHuman(level, plan), {
-    until: (e) => e.type === "land" || e.type === "crash",
+    until: untilRunEnds,
   });
   return {
     launch: first(events, "launch"),
     land: first(events, "land"),
     crash: first(events, "crash"),
   };
-}
-
-/** Bottom, middle and top of the level's HUD speed band (km/h). */
-function band(level: LevelDef): number[] {
-  const [lo, hi] = level.speedHint.map((v) => v * 3.6);
-  return [lo, (lo + hi) / 2, hi];
 }
 
 const label = (plan: HumanPlan) =>
@@ -34,7 +35,7 @@ const label = (plan: HumanPlan) =>
     : `, lift-off x ${plan.liftX} for ${plan.liftHeight} m`);
 
 describe("release stabilizer: hold to spin, let go when it's nearly upright", () => {
-  it.each(band(backflipLevel))(
+  it.each(speedBand(backflipLevel))(
     "backflip at %d km/h lands a single across the release window",
     (kmh) => {
       for (const delay of DELAYS)
@@ -46,7 +47,7 @@ describe("release stabilizer: hold to spin, let go when it's nearly upright", ()
     }
   );
 
-  it.each(band(kickflipLevel))(
+  it.each(speedBand(kickflipLevel))(
     "kickflip ◀ and heelflip ▶ at %d km/h land a single across the release window",
     (kmh) => {
       for (const [dir, name] of [
@@ -71,7 +72,7 @@ describe("release stabilizer: hold to spin, let go when it's nearly upright", ()
   it("still wrecks when let go half a turn from upright", () => {
     const release = -180 * DEG;
     for (const delay of DELAYS) {
-      for (const kmh of band(backflipLevel)) {
+      for (const kmh of speedBand(backflipLevel)) {
         const plan = { kmh, dir: -1, release, delay };
         expect(play(backflipLevel, plan).crash?.reason, label(plan)).toBe(
           "angle"
