@@ -42,8 +42,8 @@ stay in your browser.
 - Hold the rotation until the car is nearly upright, then let go: stabilizing thrusters level
   it. Hold the thrusters to soften the touchdown; the tank lasts only a couple of seconds.
 - On the menu, Enter, Space or A plays the focused stunt (the first by default). On the result
-  and pause cards they press the focused button (RETRY or RESUME by default), R or Y restarts and
-  Esc or B leaves the card.
+  and pause cards they press the focused button (RETRY or RESUME by default), R or Y restarts, and
+  Esc or B goes back: to the menu from the result card, to the run from the pause card.
 - On phones and tablets the on-screen controls appear during a run: ↺ ↻ bottom left, GAS, BRAKE
   and THRUST bottom right, pause and mute top right. The sound and units toggles are on the
   menu and the pause card. Landscape shows the most of the scene.
@@ -60,19 +60,20 @@ stay in your browser.
   axis at 2.6 g while the cold gas lasts, and the spin input drives the pitch (backflip) or the
   roll (kickflip). Touchdown tests the body corners and tire contacts against the ramp, the
   ground and the lineup's collision outlines and grades the landing; a wreck becomes a 3D
-  rigid-body tumble. Every tunable lives in [`src/physics/tuning.ts`](src/physics/tuning.ts).
+  rigid-body tumble. The tunables live in [`src/physics/tuning.ts`](src/physics/tuning.ts), the
+  per-stunt ones such as the gas tank in the level files.
 - **Graphics** ([`src/render/`](src/render)): three.js with ACES tone mapping, bloom and
   reflections from a dim studio environment. The Roadster, the five lineup vehicles, the Curl
   with its truss tower and the night venue are built in code from lofted cross-sections,
   extrusions and instanced parts; surface textures are generated from seeded noise at load, and
-  jets, clouds, sparks and smoke are pooled GPU particles. Phones get a low tier: no shadows or
-  MSAA, fewer particles, a lower pixel ratio.
+  jets, clouds, sparks and smoke are pooled, instanced particles. Phones get a low tier: no
+  shadows or MSAA, fewer particles, a lower pixel ratio.
 - **Sound** ([`src/audio/`](src/audio)): procedural WebAudio. Oscillators make the motor and
   inverter whine, filtered noise makes the road, the wind and the cold-gas hiss and roar, and
   every cue is synthesized. There are no audio files.
-- **No backend, no downloads**: the build is a static site that makes no network requests while
-  you play. The only bitmaps are the author avatar in the menu footer and the icons and link
-  preview in `public/`, which are screenshots of the game's own scenes.
+- **No backend**: the build is a static site that makes no network requests while you play. The
+  only bitmaps are the author avatar in the menu footer and the icons and link preview in
+  `public/`, which are screenshots of the game's own scenes.
 
 ## Project layout
 
@@ -200,10 +201,10 @@ npm run snap -- "http://localhost:5173/dev/roadster.html?view=rear34&freeze=1" s
   rotation after the lip, no thrust, no lift-off, too low a hop).
 - `release`: simulated players with human reaction delays let go of the spin anywhere from 80°
   early to 10° late and still land; half a turn off still wrecks.
-- `physics`, `profile`, `determinism`: driving, braking and reverse, thrust and gas, the run
-  flow, wrecks, the track shapes, and identical results under jittery frame times.
+- `physics`, `profile`, `determinism`: driving, braking and reverse, thrust and gas, the run flow,
+  wrecks, the track shapes, and identical replays of the same inputs and jittery frame times.
 - `scoring`, `input-mapping`, `storage`, `ui-format`: trick names, grades and points; key and
-  gamepad bindings; settings and best scores without localStorage; HUD text and share links.
+  gamepad bindings; settings and best scores, also without localStorage; HUD text and share links.
 
 The tests are what prove both stunts stay landable, so run them after any change to
 `src/physics/tuning.ts` or the levels. Rendering and sound are checked by eye and ear on the dev
