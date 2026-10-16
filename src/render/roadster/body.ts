@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CAR, NOZZLE_POSITIONS } from "@/core/car-spec";
 import { clamp } from "@/core/math";
-import { GLOW } from "@/render/palette";
+import { GLOW, PALETTE } from "@/render/palette";
 import { box, flipWinding, merge, mirrorZ, prep, prismXY, tint } from "./geo";
 import { buildLoft, capRing, type Station } from "./loft";
 import {
@@ -212,7 +212,7 @@ function buildLiner(step: number): THREE.BufferGeometry {
 
 function buildInterior(high: boolean): THREE.BufferGeometry {
   const seat = new THREE.Color(0x8a8a86);
-  const dark = new THREE.Color(0x0d0e10);
+  const dark = new THREE.Color(PALETTE.satinBlack);
   const parts: THREE.BufferGeometry[] = [buildLiner(high ? 0.06 : 0.12)];
   const add = (g: THREE.BufferGeometry, c: THREE.Color) =>
     parts.push(tint(g, c));

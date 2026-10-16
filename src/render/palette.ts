@@ -15,7 +15,7 @@ export const PALETTE = {
   steel: 0x9aa0a6,
   /** Roadster "Ano White" paint. */
   anoWhite: 0xe9eaec,
-  /** Roadster lower body / diffuser. */
+  /** Roadster lower body / diffuser and dashboard. */
   satinBlack: 0x0d0e10,
   /** "Gold Glazed" glass of the dev pages' placeholder car (the Roadster has its own coated glass). */
   goldGlass: 0x4a2c18,
