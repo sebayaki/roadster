@@ -5,6 +5,7 @@
  * URL params:
  *   ?screen=menu|ready|run|ramp|air|result|crash|short|pause|popup   (default menu)
  *   ?level=backflip|kickflip   ?units=imperial   ?touch=1 (on-screen controls)
+ *   ?muted=1      start with the sound toggled off
  *   ?reason=angle|impact|obstacle   crash reason for screen=crash
  *   ?popup=0..3   which callout set screen=popup repeats
  *   ?t=<s>        fake flight time for screen=air (with ?freeze=1 for stable snapshots)
@@ -26,6 +27,8 @@ import { DEG, clamp } from "@/core/math";
 import { createCarSnapshot } from "@/core/snapshot";
 import { getLevel, LEVEL_ORDER, nextLevel } from "@/levels";
 import { Input } from "@/input/input";
+import { RoadsterModel } from "@/render/roadster-model";
+import { buildScenery } from "@/render/scenery";
 import { Hud, type PopupKind } from "@/ui/hud";
 import { lineupStartX } from "@/ui/run-view";
 import { runHarness, type HarnessContext, type View } from "./harness";
@@ -374,32 +377,18 @@ function viewFor(): string {
   return screen === "air" || screen === "ramp" ? "side" : "chase";
 }
 
-async function setupScene(ctx: HarnessContext): Promise<boolean> {
-  const l = level();
-  try {
-    const [{ buildScenery }, { RoadsterModel }] = await Promise.all([
-      import("@/render/scenery"),
-      import("@/render/roadster-model"),
-    ]);
-    const scenery = buildScenery(l, ctx.quality);
-    ctx.scene.add(scenery.root);
-    ctx.scene.fog = scenery.fog;
-    const roadster = new RoadsterModel(ctx.quality);
-    fakeCar(clock);
-    roadster.root.position.set(car.position.x, car.position.y, 0);
-    roadster.root.quaternion.setFromEuler(
-      new THREE.Euler(car.roll, 0, car.pitch, "ZXY")
-    );
-    ctx.scene.add(roadster.root);
-    let meshes = 0;
-    scenery.root.traverse((o) => {
-      if ((o as THREE.Mesh).isMesh || (o as THREE.Points).isPoints) meshes++;
-    });
-    return meshes > 0;
-  } catch (err) {
-    console.warn("[hud-dev] scenery unavailable, using the CSS backdrop", err);
-    return false;
-  }
+/** The level's venue behind the HUD, with a still Roadster posed like the fake car. */
+function setupScene(ctx: HarnessContext): void {
+  const scenery = buildScenery(level(), ctx.quality);
+  ctx.scene.add(scenery.root);
+  ctx.scene.fog = scenery.fog;
+  const roadster = new RoadsterModel(ctx.quality);
+  fakeCar(clock);
+  roadster.root.position.set(car.position.x, car.position.y, 0);
+  roadster.root.quaternion.setFromEuler(
+    new THREE.Euler(car.roll, 0, car.pitch, "ZXY")
+  );
+  ctx.scene.add(roadster.root);
 }
 
 function startCssLoop(): void {
@@ -422,17 +411,9 @@ setScreen(screen);
 if (params.get("bg") === "css") {
   startCssLoop();
 } else {
-  let hasScenery = false;
   await runHarness({
     views: { [viewFor()]: VIEWS[viewFor()], ...VIEWS },
-    setup: async (ctx) => {
-      hasScenery = await setupScene(ctx);
-      if (!hasScenery) {
-        ctx.renderer.gl.domElement.style.visibility = "hidden";
-        document.body.classList.add("bg-css");
-        document.body.style.background = "";
-      }
-    },
+    setup: setupScene,
     update: (dt) => tick(dt),
   });
   if (screen === "popup") firePopups();
