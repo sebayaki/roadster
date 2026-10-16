@@ -37,9 +37,9 @@ export function polygonEnvelope(
   if (Math.abs(Math.sin(o.yaw)) < 0.99 || o.polygon.length < 3) return null;
   const poly = o.polygon;
   return (y) => {
+    // The collision polygon starts OUTLINE_BASE (world m) above the stand.
+    if (y * scaleY < OUTLINE_BASE) return Infinity;
     const wy = o.baseY + y * scaleY;
-    // The collision polygon does not reach below its base.
-    if (y < OUTLINE_BASE) return Infinity;
     let lo = Infinity;
     let hi = -Infinity;
     for (let i = 0; i < poly.length; i++) {
