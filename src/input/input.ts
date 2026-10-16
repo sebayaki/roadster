@@ -58,7 +58,6 @@ export class Input {
 
   private queue: InputAction[] = [];
   private readonly touch: TouchControls;
-  private touchVisible = false;
 
   /** Held key code → control, plus how many keys hold each control. */
   private readonly keys = new Map<string, HoldControl>();
@@ -135,10 +134,7 @@ export class Input {
 
   /** Show the on-screen controls only during a run on touch devices. */
   setTouchControlsVisible(visible: boolean): void {
-    const show = visible && this.isTouch;
-    if (show === this.touchVisible) return;
-    this.touchVisible = show;
-    this.touch.setVisible(show);
+    this.touch.setVisible(visible && this.isTouch);
   }
 
   /** Update the spin button glyphs/labels for the level's axis (flip vs roll). */
