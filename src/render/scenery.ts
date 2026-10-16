@@ -40,7 +40,11 @@ function placeBackdrop(
   return object;
 }
 
-/** Builds the night venue for a level: ground, runway, LED strips, floodlights, haze, the Curl or the lineup. */
+/**
+ * Builds the night venue for a level: ground, runway, LED strips, stands,
+ * floodlights, haze, the level's Curl or lineup and the other stunt's
+ * structure as a backdrop.
+ */
 export function buildScenery(level: LevelDef, quality: Quality): Scenery {
   const root = new THREE.Group();
   root.name = "scenery";

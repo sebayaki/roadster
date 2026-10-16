@@ -4,9 +4,10 @@ import { FOG_FADE } from "./glow";
 /**
  * LED strips drawn as camera-facing ribbons along polylines. Each ribbon keeps
  * a minimum on-screen width, so a 7 cm strip still reads as a crisp red line
- * 300 m away, and its HDR intensity ramps up with distance: close strips stay
- * just under the bloom threshold (no red veil over the frame), far ones bloom.
- * A second, wider additive ribbon adds a soft controlled halo.
+ * 300 m away. Its intensity ramps up with distance from `nearScale` (close
+ * strips are dimmed so they do not wash the frame red) and drops where the
+ * ribbon is widened past its real width. A second, wider additive ribbon adds
+ * a soft controlled halo.
  */
 
 export interface LedLineOptions {

@@ -1,14 +1,11 @@
 import * as THREE from "three";
 
-/**
- * Shared look of the night stunt venue. Colors above 1.0 are HDR values that
- * bloom (the bloom threshold is ~0.8 after tone mapping).
- */
+/** Shared base colors (sRGB hex) of the night stunt venue and the Roadster. */
 export const PALETTE = {
   /** Night sky / fog. */
   sky: 0x040508,
   fog: 0x07080c,
-  /** Dark asphalt of the venue. */
+  /** Dark asphalt of the dev pages' stand-in venues (the real ground is textured). */
   asphalt: 0x141519,
   /** White painted lines on the asphalt. */
   linePaint: 0xd9dadc,
@@ -20,13 +17,15 @@ export const PALETTE = {
   anoWhite: 0xe9eaec,
   /** Roadster lower body / diffuser. */
   satinBlack: 0x0d0e10,
-  /** Roadster "Gold Glazed" glass tint. */
+  /** "Gold Glazed" glass of the dev pages' placeholder car (the Roadster has its own coated glass). */
   goldGlass: 0x4a2c18,
-  /** Titanium accents. */
-  titanium: 0x8b8e92,
 } as const;
 
-/** HDR emissive colors (pass to MeshBasicMaterial.color or emissive with intensity 1). */
+/**
+ * HDR emissive colors in linear RGB (pass to MeshBasicMaterial.color or
+ * emissive with intensity 1). Bloom picks up linear luminance above its
+ * threshold (see renderer.ts), before tone mapping.
+ */
 export const GLOW = {
   /** Bright red for small light bars (the Roadster's tail bar). Long strips tone-map to salmon at this level: use ledStrip. */
   ledRed: new THREE.Color(6.0, 0.22, 0.2),

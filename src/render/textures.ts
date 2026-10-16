@@ -326,7 +326,7 @@ function concreteTextures(quality: Quality): SurfaceTextures {
 
 /**
  * Soft round glow: white RGB, alpha falling smoothly from 1 at the center to 0
- * at the edge. Used for lamp halos, light pools on the ground and haze. Shared.
+ * at the edge. Used for lamp halos and haze. Shared.
  */
 export function createGlowTexture(size = 128): THREE.DataTexture {
   return shared(`glow-${size}`, () => glowTexture(size));
