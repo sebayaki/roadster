@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type { CarSnapshot, Quality, Vec3 } from "@/core/types";
 import { CAR } from "@/core/car-spec";
-import { TAU } from "@/core/math";
+import { clamp, damp, TAU } from "@/core/math";
 import { GLOW } from "./palette";
 import type { RoadsterModel } from "./roadster-model";
 import { createPuffAtlas, PUFF_VARIANTS } from "./fx/puff-texture";
@@ -158,7 +158,7 @@ export class FxSystem {
     camera: THREE.Camera
   ): void {
     const step = dt > 0 ? Math.min(dt, 0.1) : 0;
-    this.carVel.set(car.velocity.x, car.velocity.y, car.velocity.z);
+    this.carVel.copy(car.velocity);
     this.smoke.simulate(step);
     this.glow.simulate(step);
     this.updateJets(step, car, roadster);
@@ -171,7 +171,7 @@ export class FxSystem {
 
   /** Big white cold-gas / dust cloud at touchdown. intensity 0..1. */
   landingBurst(position: Vec3, intensity: number): void {
-    const k = Math.min(1, Math.max(0, intensity));
+    const k = clamp(intensity, 0, 1);
     const rng = this.rng;
     const sizeK = this.tier.size;
     const groundY = Math.max(0, position.y - CAR.comHeight);
@@ -221,7 +221,7 @@ export class FxSystem {
    * point or the car's center; near the ground they start under the body.
    */
   sparks(position: Vec3, intensity: number): void {
-    const k = Math.min(1, Math.max(0, intensity));
+    const k = clamp(intensity, 0, 1);
     const rng = this.rng;
     const p = this.p;
     const y0 =
@@ -350,7 +350,7 @@ export class FxSystem {
       const target = raw > JET.threshold ? Math.min(1, raw) : 0;
       // Fast valves: ~30 ms attack, ~50 ms release.
       const rate = target > jet.level ? 35 : 20;
-      jet.level += (target - jet.level) * (1 - Math.exp(-rate * dt));
+      jet.level = damp(jet.level, target, rate, dt);
       if (jet.level < JET.threshold) {
         jet.puffAcc = 0;
         jet.groundAcc = 0;
@@ -608,10 +608,9 @@ export class FxSystem {
         continue;
       }
       if (car.mode === "crashed") {
-        const k = 1 - Math.exp(-6 * dt);
-        s.x += (car.position.x - s.x) * k;
-        s.y += (car.position.y - s.y) * k;
-        s.z += (car.position.z - s.z) * k;
+        s.x = damp(s.x, car.position.x, 6, dt);
+        s.y = damp(s.y, car.position.y, 6, dt);
+        s.z = damp(s.z, car.position.z, 6, dt);
       }
       const fade = 1 - s.time / CRASH_SMOKE_SECONDS;
       s.acc += CRASH_SMOKE_RATE * this.tier.density * Math.sqrt(fade) * dt;

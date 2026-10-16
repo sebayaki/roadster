@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { smoothstep } from "@/core/math";
 
 /** Pixel size of one sprite tile; the atlas is 2×2 tiles. */
 const TILE = 128;
@@ -43,11 +44,6 @@ function fbm(x: number, y: number, seed: number, octaves: number): number {
   return sum / norm;
 }
 
-function smooth(edge0: number, edge1: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
-}
-
 /**
  * Procedural 2×2 atlas of soft, billowy smoke puffs (no image assets).
  * R = density: a round mask whose rim is eroded by fbm noise into lumpy lobes.
@@ -66,10 +62,10 @@ export function createPuffAtlas(): THREE.DataTexture {
         const w = ((y + 0.5) / TILE) * 2 - 1;
         const r = Math.sqrt(u * u + w * w);
         // Soft gaussian core, faded to exactly 0 at the tile's inscribed circle.
-        const falloff = Math.exp(-r * r * 2.4) * smooth(1.0, 0.78, r);
+        const falloff = Math.exp(-r * r * 2.4) * smoothstep(1.0, 0.78, r);
         // Lumpy outline: low-frequency noise erodes the outer part unevenly.
         const lobes = fbm(u * 1.9 + v * 5.3, w * 1.9 - v * 2.7, seed, 4);
-        const outline = smooth(0.2, 0.8, lobes + 0.45 - r * 0.55);
+        const outline = smoothstep(0.2, 0.8, lobes + 0.45 - r * 0.55);
         // Interior wisps and holes.
         const detail = fbm(u * 3.6 + 13.1, w * 3.6 - 5.7, seed + 7, 5);
         const density = Math.min(

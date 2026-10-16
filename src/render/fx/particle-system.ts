@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { TAU } from "@/core/math";
 import { createParticleMaterial, type ParticleKind } from "./particle-material";
 import type { ParticleUniforms } from "./particle-material";
 import type { Rng } from "./rng";
@@ -277,7 +278,7 @@ export class ParticleSystem {
     s[o + DRAG] = p.drag;
     s[o + ACCEL_Y] = p.accelY;
     s[o + TURB] = p.turbulence;
-    s[o + PHASE] = this.rng.next() * Math.PI * 2;
+    s[o + PHASE] = this.rng.next() * TAU;
     s[o + GROUND] = p.ground;
     s[o + BOUNCE] = p.bounce;
     s[o + STRETCH] = p.stretch;
