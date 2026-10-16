@@ -131,7 +131,7 @@ export function buttonKey(
   return (scheme === "keyboard" ? keyboard : gamepad)[button];
 }
 
-/** Caption of the spin axis for menus and the dial. */
+/** Caption of the spin axis on the rotation dial and over the touch spin buttons. */
 export function axisLabel(axis: SpinAxis): string {
   return axis === "pitch" ? "FLIP" : "ROLL";
 }

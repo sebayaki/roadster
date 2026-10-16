@@ -1,19 +1,16 @@
 import type { SpinAxis } from "@/core/types";
+import { axisLabel } from "@/ui/controls-info";
 import { h, icon } from "@/ui/dom";
 import { ICONS } from "@/ui/icons";
 import { HOLD_CONTROLS, type HoldControl } from "./mapping";
 
-const SPIN_LABELS: Record<
-  SpinAxis,
-  { caption: string; left: string; right: string }
-> = {
+/** Accessible names of the ◀ ▶ spin buttons per axis. */
+const SPIN_LABELS: Record<SpinAxis, { left: string; right: string }> = {
   pitch: {
-    caption: "FLIP",
     left: "Flip backwards (counter-clockwise)",
     right: "Flip forwards (clockwise)",
   },
   roll: {
-    caption: "ROLL",
     left: "Roll left (counter-clockwise)",
     right: "Roll right (clockwise)",
   },
@@ -57,7 +54,7 @@ export class TouchControls {
         ...children
       );
 
-    this.caption = h("span", { class: "tc-caption" }, "FLIP");
+    this.caption = h("span", { class: "tc-caption" });
     this.buttons = {
       left: button("left", "tc-spin", "", icon(ICONS.ccw, "tc-icon")),
       right: button("right", "tc-spin", "", icon(ICONS.cw, "tc-icon")),
@@ -122,7 +119,7 @@ export class TouchControls {
 
   setSpinAxis(axis: SpinAxis): void {
     const labels = SPIN_LABELS[axis];
-    this.caption.textContent = labels.caption;
+    this.caption.textContent = axisLabel(axis);
     this.buttons.left.setAttribute("aria-label", labels.left);
     this.buttons.right.setAttribute("aria-label", labels.right);
   }
