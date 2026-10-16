@@ -18,8 +18,6 @@ import {
 } from "./vehicles/specs";
 import { buildStage } from "./vehicles/stage";
 
-export { VEHICLE_DIMS } from "./vehicles/specs";
-
 type Builder = (b: MeshBuilder, env: Envelope, quality: Quality) => void;
 
 const BUILDERS: Record<VehicleKind, Builder> = {
@@ -86,7 +84,7 @@ export function buildLineup(
     const node =
       o.kind === "stage"
         ? buildStage(o, quality)
-        : placeVehicle(o, quality, kit);
+        : placeVehicle(o, o.kind, quality, kit);
     node.updateMatrix();
     node.matrixAutoUpdate = false;
     group.add(node);
@@ -96,10 +94,10 @@ export function buildLineup(
 
 function placeVehicle(
   o: Obstacle,
+  kind: VehicleKind,
   quality: Quality,
   kit: VehicleMaterials
 ): THREE.Group {
-  const kind = o.kind as VehicleKind;
   const dims = VEHICLE_DIMS[kind];
   // Obstacle sizes are world-axis aligned; a vehicle across the path has its length on z.
   const across = Math.abs(Math.sin(o.yaw)) > 0.5;
