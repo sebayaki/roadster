@@ -6,20 +6,15 @@
  * URL params (besides the harness ones): ?cam=x,y,z,tx,ty,tz,fov to try another framing.
  */
 import * as THREE from "three";
-import { runHarness, type View } from "./harness";
+import { camParam, runHarness, type View } from "./harness";
 import { CAR } from "@/core/car-spec";
 import { RoadsterModel } from "@/render/roadster-model";
 
-const params = new URLSearchParams(location.search);
-const cam = params.get("cam")?.split(",").map(Number);
-const SHOT: View =
-  cam && cam.length === 7
-    ? {
-        position: [cam[0], cam[1], cam[2]],
-        target: [cam[3], cam[4], cam[5]],
-        fov: cam[6],
-      }
-    : { position: [6.2, 2.1, 7.4], target: [0.1, 0.2, 0], fov: 31 };
+const SHOT: View = camParam(new URLSearchParams(location.search)) ?? {
+  position: [6.2, 2.1, 7.4],
+  target: [0.1, 0.2, 0],
+  fov: 31,
+};
 
 /** Ring radius, tube radius at the head, and the swept angle of the trail. */
 const RING = { radius: 2.2, tube: 0.2, arc: Math.PI * 1.5 };

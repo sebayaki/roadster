@@ -22,6 +22,17 @@ export interface View {
   fov?: number;
 }
 
+/**
+ * The `?cam=x,y,z,tx,ty,tz,fov` param (camera position, target and fov) as a
+ * View, or null when it is missing or malformed.
+ */
+export function camParam(params: URLSearchParams): View | null {
+  const v = params.get("cam")?.split(",").map(Number);
+  return v && v.length === 7 && v.every(Number.isFinite)
+    ? { position: [v[0], v[1], v[2]], target: [v[3], v[4], v[5]], fov: v[6] }
+    : null;
+}
+
 export interface HarnessContext {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;

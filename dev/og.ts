@@ -7,7 +7,7 @@
  * URL params (besides the harness ones): ?at=<game seconds to freeze at>,
  * ?cam=x,y,z,tx,ty,tz,fov to try another framing.
  */
-import { runHarness, type View } from "./harness";
+import { camParam, runHarness, type View } from "./harness";
 import { backflipLevel } from "@/levels/backflip";
 import { createAutopilot } from "@/physics/autopilot";
 import { CarPhysics } from "@/physics/car-physics";
@@ -18,15 +18,11 @@ import { buildScenery, type Scenery } from "@/render/scenery";
 const params = new URLSearchParams(location.search);
 /** Game time of the frozen moment (s): the car is vertical, nose down, jets firing. */
 const stopAt = Number(params.get("at") ?? "10");
-const cam = params.get("cam")?.split(",").map(Number);
-const SHOT: View =
-  cam && cam.length === 7
-    ? {
-        position: [cam[0], cam[1], cam[2]],
-        target: [cam[3], cam[4], cam[5]],
-        fov: cam[6],
-      }
-    : { position: [-13, 21.5, 10.5], target: [-9.5, 24, 0], fov: 40 };
+const SHOT: View = camParam(params) ?? {
+  position: [-13, 21.5, 10.5],
+  target: [-9.5, 24, 0],
+  fov: 40,
+};
 
 let physics: CarPhysics;
 let pilot: ReturnType<typeof createAutopilot>;
@@ -53,18 +49,10 @@ void runHarness({
       physics.step(step, pilot(physics.car, step));
       physics.drainEvents();
       simTime += step;
-      const car = physics.car;
-      roadster.root.position.set(
-        car.position.x,
-        car.position.y,
-        car.position.z
-      );
-      roadster.root.quaternion.set(
-        car.quaternion.x,
-        car.quaternion.y,
-        car.quaternion.z,
-        car.quaternion.w
-      );
+      const { car } = physics;
+      const { position: p, quaternion: q } = car;
+      roadster.root.position.set(p.x, p.y, p.z);
+      roadster.root.quaternion.set(q.x, q.y, q.z, q.w);
       roadster.root.updateMatrixWorld(true);
       roadster.update(step, car);
       fx.update(step, car, roadster, camera);
