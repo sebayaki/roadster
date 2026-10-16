@@ -412,6 +412,8 @@ export class CameraRig {
   }
 
   private compose(out: Pose, car: CarSnapshot, dt: number): void {
+    // Every shot keeps the base FOV; only the chase widens it with speed.
+    out.fov = BASE_FOV;
     switch (this.mode) {
       case "attract":
         this.attractShot(out, car, dt);
@@ -452,7 +454,6 @@ export class CameraRig {
     const drift = Math.sin(this.time * 0.4);
     out.pos.set(p.x - 6.4 - 0.5 * drift, p.y + 1.05, p.z + 3.0);
     out.target.set(p.x + 2.2, p.y + 0.15, p.z);
-    out.fov = BASE_FOV;
     this.clearHud(out);
   }
 
@@ -503,7 +504,6 @@ export class CameraRig {
       p.y + 0.7 + Math.max(0, Math.sin(car.pitch)) * ahead,
       0
     );
-    out.fov = BASE_FOV;
     this.clearHud(out);
   }
 
@@ -519,7 +519,6 @@ export class CameraRig {
       lerp(2.5, 7, airW)
     );
     out.target.set(lerp(p.x + 14, p.x, airW), lerp(0.8, p.y, airW), 0);
-    out.fov = BASE_FOV;
     this.clearHud(out);
   }
 
@@ -536,7 +535,6 @@ export class CameraRig {
       lerp(p.y + 0.5, Math.max(1.2, p.y * 0.55), airW),
       lerp(-0.3, 0, airW)
     );
-    out.fov = BASE_FOV;
     this.clearHud(out);
   }
 
@@ -631,7 +629,6 @@ export class CameraRig {
       s.camHeight,
       d * Math.cos(s.yaw)
     );
-    out.fov = BASE_FOV;
   }
 
   /** Menu: a low tracking shot beside the car, easing into a hero shot of the stunt. */
@@ -647,7 +644,6 @@ export class CameraRig {
       p.z + radius * Math.sin(azimuth)
     );
     track.target.set(p.x + 1.2, p.y + 0.1, p.z);
-    track.fov = BASE_FOV;
 
     const near = this.sideAir
       ? smoothstep(-80, -35, p.x)
@@ -728,7 +724,6 @@ export class CameraRig {
     // the camera's right vector is (sin, 0, -cos).
     const shift = screenX * this.camera.aspect * TAN_HALF_FOV * radius;
     out.target.set(c.x - sin * shift, c.y + 0.2, c.z + cos * shift);
-    out.fov = BASE_FOV;
   }
 
   private measureHud(): void {
