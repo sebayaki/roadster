@@ -2,8 +2,9 @@
  * Venue preview: `dev/scenery.html?level=backflip|kickflip&view=<name>`.
  * Views: overview, ramp-side, ramp-base, runway-chase, aerial, lineup-front,
  * lineup-chase, game-side, game-chase, or a custom one with
- * `?pos=x,y,z&look=x,y,z&fov=deg`. `?focus=spawn|second|x,y,z` picks what the
- * follow spot tracks. `?stats=1` logs the scenery's draw calls / triangles / lights.
+ * `?view=custom&pos=x,y,z&look=x,y,z&fov=deg`. `?focus=spawn|second|x,y,z`
+ * picks what the follow spot tracks. `?stats=1` logs the scenery's draw calls /
+ * triangles / lights.
  * White placeholder boxes (the Roadster's 4.45 × 1.12 × 2.0 m) give scale.
  */
 import * as THREE from "three";
@@ -55,7 +56,7 @@ const views: Record<string, View> = {
   aerial: at(curlAt, [-88, 62, 74], [-22, 0, -8], 46),
   "lineup-front": at(lineupAt, [0, 2.2, 34], [0, 4.2, 0], 36),
   "lineup-chase": at(lineupAt, [-46, 2.3, 0], [0, 3.2, 0], 34),
-  // In-game framings (camera spec §7): backflip side view in the air, chase on the approach.
+  // In-game framings: backflip side view in the air, chase on the approach.
   "game-side": { position: [-8, 11, 55], target: [-6, 11, 0], fov: 55 },
   "game-chase": { position: [-40, 3.2, 0], target: [-20, 2, 0], fov: 55 },
 };
