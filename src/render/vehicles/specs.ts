@@ -54,3 +54,25 @@ export function polygonEnvelope(
     return Math.max(0, Math.min(o.x - lo, hi - o.x)) / scaleLat;
   };
 }
+
+/**
+ * Distance of (x, y) outside a convex counter-clockwise polygon (0 inside):
+ * how far a model vertex pokes out of its obstacle's collision polygon.
+ */
+export function distanceOutside(
+  poly: ReadonlyArray<readonly [number, number]>,
+  x: number,
+  y: number
+): number {
+  let d = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const [ax, ay] = poly[i];
+    const [bx, by] = poly[(i + 1) % poly.length];
+    const ex = bx - ax;
+    const ey = by - ay;
+    const len = Math.hypot(ex, ey) || 1;
+    // Outward normal of a CCW edge is (ey, -ex).
+    d = Math.max(d, ((x - ax) * ey - (y - ay) * ex) / len);
+  }
+  return d;
+}

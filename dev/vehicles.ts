@@ -13,6 +13,7 @@ import type { Obstacle, Quality, VehicleKind } from "@/core/types";
 import { kickflipLevel, OUTLINE_BASE } from "@/levels/kickflip";
 import { GLOW, PALETTE } from "@/render/palette";
 import { buildLineup, createVehicle } from "@/render/vehicles-model";
+import { distanceOutside } from "@/render/vehicles/specs";
 import { runHarness, type View } from "./harness";
 
 const params = new URLSearchParams(location.search);
@@ -169,7 +170,7 @@ function report(root: THREE.Object3D, list: Obstacle[]): void {
         box.expandByPoint(v);
         // The polygon starts OUTLINE_BASE above the stand (1 mm slack).
         if (node !== root && v.y > o.baseY + OUTLINE_BASE + 0.001) {
-          worst = Math.max(worst, outside(o.polygon, v.x, v.y));
+          worst = Math.max(worst, distanceOutside(o.polygon, v.x, v.y));
         }
       }
     });
@@ -182,21 +183,6 @@ function report(root: THREE.Object3D, list: Obstacle[]): void {
         `polygonOut=${worst.toFixed(3)}m`
     );
   }
-}
-
-/** Distance of (x, y) outside a convex counter-clockwise polygon (0 inside). */
-function outside(poly: Array<[number, number]>, x: number, y: number): number {
-  let d = 0;
-  for (let i = 0; i < poly.length; i++) {
-    const [ax, ay] = poly[i];
-    const [bx, by] = poly[(i + 1) % poly.length];
-    const ex = bx - ax;
-    const ey = by - ay;
-    const len = Math.hypot(ex, ey) || 1;
-    // Outward normal of a CCW edge is (ey, -ex).
-    d = Math.max(d, ((x - ax) * ey - (y - ay) * ex) / len);
-  }
-  return d;
 }
 
 /** ?clay=1: neutral gray material on every lit vehicle part, to judge the shapes. */
