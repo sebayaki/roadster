@@ -204,8 +204,7 @@ export class FxSystem {
         (billow ? rng.range(2.8, 3.8) : rng.range(2.6, 3.8)) *
         (0.8 + 0.3 * k) *
         sizeK;
-      const b = rng.range(0.9, 1.02);
-      setColor(p, b * GAS_R, b * GAS_G, b * GAS_B);
+      setGasColor(p, rng.range(0.9, 1.02));
       p.alpha = billow ? rng.range(0.34, 0.45) : rng.range(0.38, 0.5);
       p.fadeIn = 0.08;
       p.fadeOut = 0.3;
@@ -233,7 +232,6 @@ export class FxSystem {
     p.x = position.x;
     p.y = Math.max(0.15, y0);
     p.z = position.z;
-    p.vx = p.vy = p.vz = 0;
     p.life = 0.14;
     p.size0 = 0.9 + 1.3 * k;
     p.size1 = p.size0 * 1.6;
@@ -430,8 +428,7 @@ export class FxSystem {
       p.size0 = rng.range(0.28, 0.38) * sizeK;
       p.size1 = (linger ? rng.range(0.8, 1.1) : rng.range(0.4, 0.65)) * sizeK;
       p.spread = JET.spread * (linger ? 0.5 : 0.85 + 0.3 * rng.next());
-      const b = rng.range(0.98, 1.1);
-      setColor(p, b * GAS_R, b * GAS_G, b * GAS_B);
+      setGasColor(p, rng.range(0.98, 1.1));
       p.alpha = (linger ? 0.14 : rng.range(0.75, 0.9)) * (0.5 + 0.5 * level);
       p.fadeIn = 0.03;
       // Keep the column opaque down to the ground, then dissolve.
@@ -479,8 +476,7 @@ export class FxSystem {
         p.life = rng.range(1.0, 2.0);
         p.size0 = rng.range(0.45, 0.7) * sizeK;
         p.size1 = (billow ? rng.range(1.3, 1.8) : rng.range(1.0, 1.5)) * sizeK;
-        const b = rng.range(0.88, 1.0);
-        setColor(p, b * GAS_R, b * GAS_G, b * GAS_B);
+        setGasColor(p, rng.range(0.88, 1.0));
         p.alpha = rng.range(0.26, 0.36);
         p.fadeIn = 0.06;
         p.fadeOut = 0.3;
@@ -686,6 +682,11 @@ function setColor(p: ParticleSpawn, r: number, g: number, b: number): void {
   p.r0 = p.r1 = r;
   p.g0 = p.g1 = g;
   p.b0 = p.b1 = b;
+}
+
+/** Cold-gas condensate tint at brightness `b`. */
+function setGasColor(p: ParticleSpawn, b: number): void {
+  setColor(p, b * GAS_R, b * GAS_G, b * GAS_B);
 }
 
 function setGradient(
