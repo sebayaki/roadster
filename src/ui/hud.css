@@ -692,6 +692,14 @@ body {
   color: var(--hud-fg);
 }
 
+.foot-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--hud-line-2);
+}
+
 .foot-icon {
   display: inline-flex;
   width: 13px;

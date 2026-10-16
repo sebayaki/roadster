@@ -94,4 +94,4 @@ old preview cached for a while.
 
 ## License
 
-[MIT](LICENSE). Made by [sebayaki.eth](https://sebayaki.com).
+[MIT](LICENSE). Made by [sebayaki.eth](https://x.com/0xsebayaki).

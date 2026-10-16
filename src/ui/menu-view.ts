@@ -9,10 +9,11 @@ import {
 import { h, icon, keycap, replayClass } from "./dom";
 import { formatScore } from "./format";
 import { ART_CURL, ART_LINEUP, ICONS } from "./icons";
+import authorAvatar from "./assets/sebayaki.png";
 import type { Toggles } from "./toggles";
 
 const REPO_URL = "https://github.com/sebayaki/roadster";
-const AUTHOR_URL = "https://sebayaki.com";
+const AUTHOR_URL = "https://x.com/0xsebayaki";
 
 const ART: Partial<Record<LevelId, string>> = {
   backflip: ART_CURL,
@@ -94,6 +95,14 @@ export class MenuView {
             target: "_blank",
             rel: "noopener",
           },
+          h("img", {
+            class: "foot-avatar",
+            src: authorAvatar,
+            alt: "",
+            width: 18,
+            height: 18,
+            decoding: "async",
+          }),
           "Made by ",
           h("strong", null, "sebayaki.eth")
         )
