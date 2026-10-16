@@ -131,8 +131,6 @@ export class CarPhysics {
   private brakeIn = 0;
   private wreckPitch = 0;
   private wreckRoll = 0;
-  /** Label of the obstacle found by the last groundedHit(). */
-  private hitLabel = "";
 
   constructor(level: LevelDef) {
     this.level = level;
@@ -349,7 +347,8 @@ export class CarPhysics {
       this.events.push({ type: "rampEnter" });
 
     // Driving into an obstacle (or the back of the ramp from the open ground).
-    if (this.groundedHit()) {
+    const obstacle = this.groundedHit();
+    if (obstacle !== null) {
       if (this.runEnded) {
         // The run is already scored: just stop against it.
         this.s = prevS;
@@ -357,7 +356,7 @@ export class CarPhysics {
         this.v = 0;
         this.syncGroundPose(this.groundFrame());
       } else {
-        this.crash("obstacle", Math.abs(v), this.hitLabel);
+        this.crash("obstacle", Math.abs(v), obstacle);
         return;
       }
     }
@@ -386,32 +385,28 @@ export class CarPhysics {
     return !this.onPlane && this.track.isRamp(this.s);
   }
 
-  /** Obstacle (or ramp-back) contact while driving; sets hitLabel. */
-  private groundedHit(): boolean {
-    if (this.shapes.length > 0) {
-      poseMatrix(this.pitch, this.roll, this.rot);
-      this.hull.set(this.px, this.py, this.rot);
-      for (const o of this.shapes) {
-        if (hullOverlaps(this.hull, o, null)) {
-          this.hitLabel = o.label;
-          return true;
-        }
-      }
-    }
-    if (this.onPlane && this.track.hasRamp) {
-      poseMatrix(this.pitch, this.roll, this.rot);
+  /** Obstacle (or ramp-back) contact while driving: its label, or null. */
+  private groundedHit(): string | null {
+    const rampBack = this.onPlane && this.track.hasRamp;
+    if (this.shapes.length === 0 && !rampBack) return null;
+    poseMatrix(this.pitch, this.roll, this.rot);
+    const obstacle = this.obstacleHit();
+    if (obstacle !== null) return obstacle;
+    if (rampBack) {
       this.computePoints();
-      for (let i = 0; i < POINT_COUNT; i++) {
-        if (
-          this.track.closestOnRamp(this.pointX[i], this.pointY[i], this.hit) &&
-          TrackGeometry.inShell(this.hit, T.rampShellThickness)
-        ) {
-          this.hitLabel = RAMP_LABEL;
-          return true;
-        }
-      }
+      for (let i = 0; i < POINT_COUNT; i++)
+        if (this.pointInRamp(i)) return RAMP_LABEL;
     }
-    return false;
+    return null;
+  }
+
+  /** Label of the first obstacle the car's body box overlaps (rot must hold the pose). */
+  private obstacleHit(): string | null {
+    if (this.shapes.length === 0) return null;
+    this.hull.set(this.px, this.py, this.rot);
+    for (const o of this.shapes)
+      if (hullOverlaps(this.hull, o, null)) return o.label;
+    return null;
   }
 
   private updateTrickGrounded(f: TrackFrame): void {
@@ -636,14 +631,10 @@ export class CarPhysics {
     );
     if (this.height > this.maxHeight) this.maxHeight = this.height;
 
-    if (this.shapes.length > 0) {
-      this.hull.set(this.px, this.py, this.rot);
-      for (const o of this.shapes) {
-        if (hullOverlaps(this.hull, o, null)) {
-          this.crash("obstacle", Math.hypot(this.vx, this.vy), o.label);
-          return;
-        }
-      }
+    const obstacle = this.obstacleHit();
+    if (obstacle !== null) {
+      this.crash("obstacle", Math.hypot(this.vx, this.vy), obstacle);
+      return;
     }
 
     // Deepest penetration of the ground plane or the ramp shell.
