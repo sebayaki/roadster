@@ -79,6 +79,7 @@ const hud = new Hud(root);
 const input = new Input(root);
 const car = createCarSnapshot();
 let paused = false;
+/** Fake run time (s): starts at ?t= and runs on the run screens unless frozen. */
 let clock = Number(params.get("t") ?? 0);
 
 function level(): LevelDef {
@@ -411,10 +412,14 @@ setScreen(screen);
 if (params.get("bg") === "css") {
   startCssLoop();
 } else {
+  // The clock already starts at ?t=: hold it through the harness's own ?t=
+  // pre-step, which would count that time twice.
+  let running = false;
   await runHarness({
     views: { [viewFor()]: VIEWS[viewFor()], ...VIEWS },
     setup: setupScene,
-    update: (dt) => tick(dt),
+    update: (dt) => tick(running ? dt : 0),
   });
+  running = true;
   if (screen === "popup") firePopups();
 }
