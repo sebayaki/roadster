@@ -1,5 +1,5 @@
 import type { AudioCue } from "./audio-engine";
-import type { NoiseBank, NoiseKind } from "./dsp";
+import { filterStage, gainStage, type NoiseBank, type NoiseKind } from "./dsp";
 
 /** Most one-shot voices sounding at once; the oldest is faded out to make room. */
 export const MAX_VOICES = 8;
@@ -69,8 +69,7 @@ class CueBuilder {
     this.t = t;
     this.rand = rand;
     this.end = t;
-    this.out = new GainNode(ctx, { gain });
-    this.out.connect(dest);
+    this.out = gainStage(ctx, gain, dest);
   }
 
   /** Gain stage with an attack / hold / decay envelope peaking at `peak`. */
@@ -82,12 +81,11 @@ class CueBuilder {
     hold = 0,
     dest: AudioNode = this.out
   ): GainNode {
-    const node = new GainNode(this.ctx, { gain: 0 });
+    const node = gainStage(this.ctx, 0, dest);
     node.gain.setTargetAtTime(peak, at, attack);
     const release = at + 3 * attack + hold;
     node.gain.setTargetAtTime(0, release, decay);
     this.end = Math.max(this.end, release + 7 * decay);
-    node.connect(dest);
     return node;
   }
 
@@ -100,7 +98,7 @@ class CueBuilder {
     decay: number,
     falloff: number
   ): GainNode {
-    const node = new GainNode(this.ctx, { gain: 0 });
+    const node = gainStage(this.ctx, 0, this.out);
     let time = at;
     for (let n = 0; n < count; n++) {
       if (n > 0) time += gap * (0.5 + this.rand());
@@ -110,7 +108,6 @@ class CueBuilder {
       node.gain.setTargetAtTime(0, time + 0.005, decay);
     }
     this.end = Math.max(this.end, time + 0.005 + 7 * decay);
-    node.connect(this.out);
     return node;
   }
 
@@ -144,9 +141,7 @@ class CueBuilder {
     Q: number,
     dest: AudioNode
   ): BiquadFilterNode {
-    const node = new BiquadFilterNode(this.ctx, { type, frequency, Q });
-    node.connect(dest);
-    return node;
+    return filterStage(this.ctx, type, frequency, Q, dest);
   }
 
   /** Schedules every source to stop after the envelopes died out; the voice disconnects itself. */

@@ -1,6 +1,6 @@
 import { clamp, damp } from "@/core/math";
 import type { CarSnapshot } from "@/core/types";
-import { SmoothParam, type NoiseBank } from "./dsp";
+import { filterStage, gainStage, SmoothParam, type NoiseBank } from "./dsp";
 
 /** Motor whine pitch (Hz) = MOTOR_BASE_HZ + motor speed (m/s) * MOTOR_HZ_PER_MS. */
 export const MOTOR_BASE_HZ = 70;
@@ -150,25 +150,10 @@ export class ContinuousLayers {
   private readonly roarGain: SmoothParam;
 
   constructor(ctx: BaseAudioContext, destination: AudioNode, noise: NoiseBank) {
-    const fader = (dest: AudioNode): GainNode => {
-      const node = new GainNode(ctx, { gain: 0 });
-      node.connect(dest);
-      return node;
-    };
-    const filter = (
-      type: BiquadFilterType,
-      frequency: number,
-      Q: number,
-      dest: AudioNode
-    ): BiquadFilterNode => {
-      const node = new BiquadFilterNode(ctx, { type, frequency, Q });
-      node.connect(dest);
-      return node;
-    };
-    const bus = fader(destination);
+    const bus = gainStage(ctx, 0, destination);
 
-    const motor = fader(bus);
-    const motorLowpass = filter("lowpass", 400, 2.5, motor);
+    const motor = gainStage(ctx, 0, bus);
+    const motorLowpass = filterStage(ctx, "lowpass", 400, 2.5, motor);
     const saw = new OscillatorNode(ctx, {
       type: "sawtooth",
       frequency: MOTOR_BASE_HZ,
@@ -181,7 +166,7 @@ export class ContinuousLayers {
     });
     saw.connect(motorLowpass);
     square.connect(motorLowpass);
-    const inverterOut = fader(bus);
+    const inverterOut = gainStage(ctx, 0, bus);
     const inverter = new OscillatorNode(ctx, {
       type: "sine",
       frequency: MOTOR_BASE_HZ * INVERTER_HARMONIC,
@@ -197,17 +182,17 @@ export class ContinuousLayers {
       buffer: noise.white,
       loop: true,
     });
-    const road = fader(bus);
-    const roadBand = filter("bandpass", 140, 0.6, road);
-    const wind = fader(bus);
-    const windBand = filter("bandpass", 320, 0.8, wind);
-    const roar = fader(bus);
-    const roarBand = filter("bandpass", 260, 0.7, roar);
+    const road = gainStage(ctx, 0, bus);
+    const roadBand = filterStage(ctx, "bandpass", 140, 0.6, road);
+    const wind = gainStage(ctx, 0, bus);
+    const windBand = filterStage(ctx, "bandpass", 320, 0.8, wind);
+    const roar = gainStage(ctx, 0, bus);
+    const roarBand = filterStage(ctx, "bandpass", 260, 0.7, roar);
     pink.connect(roadBand);
     pink.connect(windBand);
     pink.connect(roarBand);
-    const hiss = fader(bus);
-    const hissHighpass = filter("highpass", 1500, 0.7, hiss);
+    const hiss = gainStage(ctx, 0, bus);
+    const hissHighpass = filterStage(ctx, "highpass", 1500, 0.7, hiss);
     white.connect(hissHighpass);
 
     this.sources = [saw, square, inverter, pink, white];

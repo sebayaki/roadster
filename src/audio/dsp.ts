@@ -83,6 +83,30 @@ function loopedNoise(
   return buffer;
 }
 
+/** A gain stage at `gain` feeding `dest`. */
+export function gainStage(
+  ctx: BaseAudioContext,
+  gain: number,
+  dest: AudioNode
+): GainNode {
+  const node = new GainNode(ctx, { gain });
+  node.connect(dest);
+  return node;
+}
+
+/** A biquad filter feeding `dest`. */
+export function filterStage(
+  ctx: BaseAudioContext,
+  type: BiquadFilterType,
+  frequency: number,
+  Q: number,
+  dest: AudioNode
+): BiquadFilterNode {
+  const node = new BiquadFilterNode(ctx, { type, frequency, Q });
+  node.connect(dest);
+  return node;
+}
+
 /**
  * Click-free control of an AudioParam from per-frame code: every change is a
  * setTargetAtTime glide (separate rise / fall time constants), and targets that
