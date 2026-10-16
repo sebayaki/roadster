@@ -354,7 +354,6 @@ export class CarPhysics {
     const speed = Math.abs(this.v);
     if (speed > this.topSpeed) this.topSpeed = speed;
     this.wheelRate = this.v / along / CAR.wheelRadius;
-    this.wheelSpin += this.wheelRate * SUB;
     const load = (GRAVITY * f.tx + this.v * this.v * f.curvature) / GRAVITY - 1;
     this.stepVisuals(clamp(load * T.suspensionLoadScale, -1, 1));
 
@@ -496,7 +495,6 @@ export class CarPhysics {
     const vel = Math.hypot(this.vx, this.vy);
     if (vel > this.topSpeed) this.topSpeed = vel;
     this.wheelRate *= WHEEL_DECAY;
-    this.wheelSpin += this.wheelRate * SUB;
     this.stepVisuals(0);
     this.updateTrickAirborne();
 
@@ -792,7 +790,6 @@ export class CarPhysics {
     const w = this.wreck;
     w.step(SUB, this.onImpact);
     this.wheelRate *= WHEEL_DECAY;
-    this.wheelSpin += this.wheelRate * SUB;
     this.stepVisuals(0);
     this.checkSettled(w.restTime >= T.wreck.restTime, T.wreck.timeout);
   }
@@ -840,8 +837,9 @@ export class CarPhysics {
     return depth;
   }
 
-  /** Suspension spring toward `target` and decay of the touchdown tilt. */
+  /** Wheel rotation, suspension spring toward `target` and decay of the touchdown tilt. */
   private stepVisuals(target: number): void {
+    this.wheelSpin += this.wheelRate * SUB;
     const w = T.suspensionFreq;
     const accel =
       -w * w * (this.susp - target) -
