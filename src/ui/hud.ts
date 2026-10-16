@@ -9,7 +9,7 @@ import type {
 } from "@/core/types";
 import { loadBestScores } from "@/core/storage";
 import { LEVEL_ORDER } from "@/levels";
-import { INPUT_EVENT, dispatchAction, isInputAction } from "@/input/events";
+import { INPUT_EVENT, isInputAction } from "@/input/events";
 import { PauseCard, ResultCard } from "./cards";
 import { detectScheme, type ControlScheme } from "./controls-info";
 import { MenuView } from "./menu-view";
@@ -25,8 +25,6 @@ export interface MenuOptions {
   units: Units;
   isTouch: boolean;
   onPlay(id: LevelId): void;
-  onToggleMute(): void;
-  onToggleUnits(): void;
 }
 
 export interface ResultOptions {
@@ -57,6 +55,8 @@ export type PopupKind = "trick" | "info" | "warn" | "perfect";
  * Coordination with Input (both use window events, see src/input/events.ts):
  * - the HUD's pause / mute / units buttons emit `rdstr:action`, which Input
  *   queues like the matching keys, so the App handles them as usual;
+ * - sound and units belong to the App: buttons and keys only emit actions and
+ *   the App pushes the new values back through setMuted / setUnits;
  * - while the menu, pause or result card is open the HUD claims Enter / Space /
  *   A (confirm), Esc / B (back), R / Y (restart) through `rdstr:input` and runs
  *   the card's own callbacks, so those keys never reach the App twice.
@@ -71,7 +71,6 @@ export class Hud {
   private readonly result: ResultCard;
   private readonly pause: PauseCard;
 
-  private menuOpts: MenuOptions | null = null;
   private level: LevelDef | null = null;
   private muted = false;
   private units: Units = "metric";
@@ -86,25 +85,12 @@ export class Hud {
     this.root = root;
     this.best = { ...loadBestScores() };
 
-    this.menuToggles = new Toggles(this.toggleMenuMute, this.toggleMenuUnits);
-    this.pauseToggles = new Toggles(
-      () => {
-        this.setMuted(!this.muted);
-        dispatchAction("mute");
-      },
-      () => {
-        this.applyUnits(this.units === "metric" ? "imperial" : "metric");
-        dispatchAction("units");
-      }
-    );
+    this.menuToggles = new Toggles();
+    this.pauseToggles = new Toggles();
     this.menu = new MenuView(this.menuToggles);
     this.run = new RunView();
     this.result = new ResultCard();
     this.pause = new PauseCard(this.pauseToggles);
-    this.run.muteButton.addEventListener("click", () => {
-      this.setMuted(!this.muted);
-      dispatchAction("mute");
-    });
 
     root.classList.add("hud-root");
     root.append(
@@ -122,7 +108,6 @@ export class Hud {
   }
 
   showMenu(opts: MenuOptions): void {
-    this.menuOpts = opts;
     this.muted = opts.muted;
     this.units = opts.units;
     this.isTouch = opts.isTouch;
@@ -167,7 +152,7 @@ export class Hud {
 
   /** Per frame during a run: speedometer (+ speed hint band), height, gas, live rotation dial, air time. */
   update(car: CarSnapshot, level: LevelDef, units: Units): void {
-    if (units !== this.units) this.applyUnits(units);
+    if (units !== this.units) this.setUnits(units);
     this.run.update(car, level, units);
   }
 
@@ -217,6 +202,14 @@ export class Hud {
     this.syncToggles();
   }
 
+  /** Units switched in the App: toggles, run gauges and result stats follow right away. */
+  setUnits(units: Units): void {
+    this.units = units;
+    this.syncToggles();
+    this.run.setUnits(units);
+    this.result.setUnits(units);
+  }
+
   dispose(): void {
     window.removeEventListener(INPUT_EVENT, this.onInputAction);
     window.removeEventListener("gamepadconnected", this.onGamepad);
@@ -235,24 +228,6 @@ export class Hud {
     this.root.classList.remove("hud-root");
   }
 
-  /** Menu toggles use the menu's own callbacks (MenuOptions); the App confirms via setMuted / showMenu. */
-  private readonly toggleMenuMute = (): void => {
-    this.setMuted(!this.muted);
-    this.menuOpts?.onToggleMute();
-  };
-
-  private readonly toggleMenuUnits = (): void => {
-    this.applyUnits(this.units === "metric" ? "imperial" : "metric");
-    this.menuOpts?.onToggleUnits();
-  };
-
-  private applyUnits(units: Units): void {
-    this.units = units;
-    this.syncToggles();
-    this.run.setUnits(units);
-    this.result.setUnits(units);
-  }
-
   private syncToggles(): void {
     this.menuToggles.sync(this.muted, this.units);
     this.pauseToggles.sync(this.muted, this.units);
@@ -263,19 +238,6 @@ export class Hud {
   private readonly onInputAction = (e: Event): void => {
     const action: unknown = (e as CustomEvent<unknown>).detail;
     if (!isInputAction(action)) return;
-    if (action === "mute" || action === "units") {
-      if (this.menu.visible && this.menuOpts) {
-        // The menu has its own callbacks for these; claim so the App does not toggle twice.
-        e.preventDefault();
-        if (action === "mute") this.toggleMenuMute();
-        else this.toggleMenuUnits();
-      } else if (action === "mute") {
-        this.setMuted(!this.muted); // The App toggles too and confirms through setMuted().
-      } else {
-        this.applyUnits(this.units === "metric" ? "imperial" : "metric");
-      }
-      return;
-    }
     const overlay = this.pause.visible
       ? this.pause
       : this.result.visible

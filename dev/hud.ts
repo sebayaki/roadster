@@ -277,15 +277,6 @@ function showMenu(): void {
       levelId = id;
       setScreen("ready");
     },
-    onToggleMute: () => {
-      muted = !muted;
-      hud.setMuted(muted);
-      console.log(`[hud-dev] menu mute → ${muted}`);
-    },
-    onToggleUnits: () => {
-      units = units === "metric" ? "imperial" : "metric";
-      console.log(`[hud-dev] menu units → ${units}`);
-    },
   });
 }
 
@@ -377,6 +368,7 @@ function tick(dt: number): void {
       hud.setMuted(muted);
     } else if (action === "units") {
       units = units === "metric" ? "imperial" : "metric";
+      hud.setUnits(units);
     } else if (action === "pause" && screen !== "menu") {
       if (paused) {
         paused = false;

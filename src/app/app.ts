@@ -126,6 +126,7 @@ export class App {
 
     this.audio.setMuted(this.settings.muted);
     this.hud.setMuted(this.settings.muted);
+    this.hud.setUnits(this.settings.units);
     this.level = getLevel(this.params.level ?? LEVEL_ORDER[0]);
     this.physics = new CarPhysics(this.level);
     installDebugHooks({
@@ -344,8 +345,6 @@ export class App {
       units: this.settings.units,
       isTouch: this.input.isTouch,
       onPlay: (id) => this.fromUi(() => this.startRun(id)),
-      onToggleMute: () => this.fromUi(() => this.toggleMute()),
-      onToggleUnits: () => this.fromUi(() => this.toggleUnits()),
     });
   }
 
@@ -451,10 +450,11 @@ export class App {
   private onAction(action: InputAction): void {
     switch (action) {
       case "mute":
-        this.toggleMute();
-        break;
       case "units":
-        this.toggleUnits();
+        if (action === "mute") this.toggleMute();
+        else this.toggleUnits();
+        // The menu's toggles click like its other buttons (their keys too).
+        if (this.state === "menu") this.audio.play("ui");
         break;
       case "camera":
         this.cameraRig.cycleFraming();
@@ -497,9 +497,8 @@ export class App {
   private toggleUnits(): void {
     this.settings.units =
       this.settings.units === "metric" ? "imperial" : "metric";
+    this.hud.setUnits(this.settings.units);
     saveSettings(this.settings);
-    // The HUD switches its own run / result / pause views; the menu takes a refresh.
-    if (this.state === "menu") this.showMenu();
   }
 
   private onVisibility(hidden: boolean): void {

@@ -1,8 +1,13 @@
 import type { Units } from "@/core/types";
+import { dispatchAction } from "@/input/events";
 import { h, icon } from "./dom";
 import { ICONS } from "./icons";
 
-/** Sound + units toggle pair used by the menu and the pause card. */
+/**
+ * Sound + units toggle pair used by the menu and the pause card. Clicks only
+ * emit the `mute` / `units` actions; the App toggles its settings and the HUD
+ * shows the result through sync().
+ */
 export class Toggles {
   readonly el: HTMLDivElement;
   private readonly sound: HTMLButtonElement;
@@ -12,7 +17,7 @@ export class Toggles {
   private readonly metric: HTMLSpanElement;
   private readonly imperial: HTMLSpanElement;
 
-  constructor(onSound: () => void, onUnits: () => void) {
+  constructor() {
     this.soundIcon = icon(ICONS.soundOn);
     this.soundState = h("span", { class: "tg-state" }, "ON");
     this.sound = h(
@@ -30,8 +35,8 @@ export class Toggles {
       this.metric,
       this.imperial
     );
-    this.sound.addEventListener("click", onSound);
-    this.units.addEventListener("click", onUnits);
+    this.sound.addEventListener("click", () => dispatchAction("mute"));
+    this.units.addEventListener("click", () => dispatchAction("units"));
     this.el = h("div", { class: "tg-group" }, this.sound, this.units);
   }
 

@@ -143,6 +143,7 @@ export class RunView {
       },
       icon(ICONS.pause)
     );
+    this.muteButton.addEventListener("click", () => dispatchAction("mute"));
     this.pauseButton.addEventListener("click", () => dispatchAction("pause"));
 
     // Speedometer: digits + unit, bar with the recommended band and a live marker.
