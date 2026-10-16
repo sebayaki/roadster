@@ -11,7 +11,7 @@ export type AudioCue =
   | "flip" // another full rotation completed
   | "gasEmpty" // cold-gas tank ran dry
   | "result" // result card appears
-  | "ui"; // menu click / hover
+  | "ui"; // menu / card button click
 
 /** Cues start this far ahead of currentTime so their first envelope point is never in the past (s). */
 const CUE_LEAD = 0.005;

@@ -1,6 +1,6 @@
-import { CuePlayer } from "./cues";
 import { mulberry32 } from "@/core/math";
-import { createNoiseBank, type NoiseBank } from "./dsp";
+import { CuePlayer } from "./cues";
+import { createNoiseBank } from "./dsp";
 import { ContinuousLayers } from "./layers";
 
 /** Master gain when not muted. */
@@ -11,7 +11,6 @@ export interface AudioGraph {
   /** Mute and pause ramp this gain; everything else feeds it. */
   master: GainNode;
   compressor: DynamicsCompressorNode;
-  noise: NoiseBank;
   /** Continuous layers (not started yet). */
   layers: ContinuousLayers;
   cues: CuePlayer;
@@ -41,7 +40,6 @@ export function createAudioGraph(
   return {
     master,
     compressor,
-    noise,
     layers: new ContinuousLayers(ctx, master, noise),
     cues: new CuePlayer(ctx, master, noise, mulberry32(seed ^ 0x9e3779b9)),
   };

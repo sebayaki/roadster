@@ -18,7 +18,7 @@ export type NoiseKind = keyof NoiseBank;
 
 export function createNoiseBank(
   ctx: BaseAudioContext,
-  seed = 0x0dd5eed
+  seed: number
 ): NoiseBank {
   const rand = mulberry32(seed);
   // Different lengths so the two loops never line up.

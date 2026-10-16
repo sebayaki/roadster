@@ -74,7 +74,7 @@ export interface SelfCheckReport {
 }
 
 /** Peak, RMS and audible extent of `samples[from, to)`. */
-export function analyze(
+function analyze(
   samples: Float32Array,
   rate: number,
   from = 0,

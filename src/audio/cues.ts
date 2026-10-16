@@ -4,7 +4,7 @@ import { filterStage, gainStage, type NoiseBank, type NoiseKind } from "./dsp";
 /** Most one-shot voices sounding at once; the oldest is faded out to make room. */
 export const MAX_VOICES = 8;
 
-/** Minimum seconds between two plays of the same cue (debounces event bursts and hover spam). */
+/** Minimum seconds between two plays of the same cue (debounces event bursts and rapid clicks). */
 const COOLDOWN: Record<AudioCue, number> = {
   launch: 0.25,
   land: 0.15,
