@@ -1,4 +1,4 @@
-import { clamp, GRAVITY, TAU } from "@/core/math";
+import { clamp, GRAVITY, offFullTurn, TAU } from "@/core/math";
 import type { CarSnapshot, Controls, LevelDef } from "@/core/types";
 import { AUTOPILOT, TUNING, type AutopilotPlan } from "./tuning";
 
@@ -65,7 +65,7 @@ export function createAutopilot(
 
   /** Fires the lift jets late and hard (a "suicide burn") once upright and falling. */
   function landingBurn(car: CarSnapshot, axisAngle: number): boolean {
-    const err = Math.abs(axisAngle - TAU * Math.round(axisAngle / TAU));
+    const err = offFullTurn(axisAngle);
     const fall = -car.velocity.y;
     if (err > AUTOPILOT.thrustWindow || fall <= 0 || car.gas <= 0) {
       burning = false;
