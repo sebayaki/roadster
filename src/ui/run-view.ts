@@ -14,17 +14,17 @@ import {
   h,
   icon,
   replayClass,
+  segmentNode,
   setChildren,
 } from "./dom";
 import {
-  formatScore,
+  formatBest,
   formatSpeedRange,
   lengthUnit,
   speedUnit,
   type Attitude,
 } from "./format";
 import { CAR_REAR, CAR_SIDE, ICONS } from "./icons";
-import { segmentNode } from "./menu-view";
 
 const RAD2DEG = 180 / Math.PI;
 /** Full scale of the speed bar relative to the top of the recommended band. */
@@ -62,6 +62,15 @@ function svgEl<K extends keyof SVGElementTagNameMap>(
 function liftLevel(car: CarSnapshot): number {
   const t = car.thrusters;
   return Math.min(t[0], t[1], t[2], t[3]);
+}
+
+/** x where the level's obstacles (the kickflip lineup) begin; +∞ without obstacles. */
+export function lineupStartX(level: LevelDef): number {
+  let x = Number.POSITIVE_INFINITY;
+  for (const o of level.obstacles) {
+    for (const [px] of o.polygon) x = Math.min(x, px);
+  }
+  return x;
 }
 
 /**
@@ -369,10 +378,7 @@ export class RunView {
     this.speedScale = level.speedHint[1] * SPEED_BAR_SCALE;
     this.band.style.left = `${(level.speedHint[0] / this.speedScale) * 100}%`;
     this.band.style.width = `${((level.speedHint[1] - level.speedHint[0]) / this.speedScale) * 100}%`;
-    this.lineupX = Number.POSITIVE_INFINITY;
-    for (const o of level.obstacles) {
-      for (const [x] of o.polygon) this.lineupX = Math.min(this.lineupX, x);
-    }
+    this.lineupX = lineupStartX(level);
     this.dialCar.innerHTML = level.spinAxis === "pitch" ? CAR_SIDE : CAR_REAR;
     this.axisEl.textContent = axisLabel(level.spinAxis);
     this.renderUnits();
@@ -419,7 +425,7 @@ export class RunView {
   }
 
   setBest(best: number | undefined): void {
-    this.bestValue.textContent = best ? formatScore(best) : "—";
+    this.bestValue.textContent = formatBest(best);
   }
 
   setMuted(muted: boolean): void {

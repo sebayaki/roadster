@@ -6,6 +6,7 @@ import { buttonKey, cheatSheet, hintSegments } from "@/ui/controls-info";
 import {
   crashReasonLine,
   crashTip,
+  formatBest,
   formatLength,
   formatMultiplier,
   formatScore,
@@ -15,6 +16,7 @@ import {
   sharePageUrl,
   shareText,
   shareUrl,
+  stuntLabel,
 } from "@/ui/format";
 
 function landing(
@@ -45,6 +47,17 @@ describe("ui number formatting", () => {
     expect(formatScore(12340)).toBe("12,340");
     expect(formatScore(999.6)).toBe("1,000");
     expect(formatScore(0)).toBe("0");
+  });
+
+  it("shows a best score, or a dash while there is none", () => {
+    expect(formatBest(8790)).toBe("8,790");
+    expect(formatBest(0)).toBe("—");
+    expect(formatBest(undefined)).toBe("—");
+  });
+
+  it("numbers the stunts with two digits", () => {
+    expect(stuntLabel(1)).toBe("Stunt 01");
+    expect(stuntLabel(12)).toBe("Stunt 12");
   });
 
   it("converts speeds and lengths into the chosen units", () => {

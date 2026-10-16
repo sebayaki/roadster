@@ -1,4 +1,6 @@
-/** Tiny DOM helpers for the HUD: element builder and change-detecting setters. */
+/** Tiny DOM helpers for the HUD: element builder, keycaps and change-detecting setters. */
+import type { HintSegment } from "./controls-info";
+import { ICONS } from "./icons";
 
 export type Child = Node | string | number | null | undefined | false;
 export type Attrs = Record<
@@ -49,6 +51,20 @@ export function icon(
 /** Keyboard / button glyph chip. */
 export function keycap(label: string, className = "hud-key"): HTMLElement {
   return h("kbd", { class: className }, label);
+}
+
+/** A hint / cheat-sheet segment: plain text or a keycap (touch spin keys draw their glyph). */
+export function segmentNode(seg: HintSegment): Node {
+  if (typeof seg === "string") return document.createTextNode(seg);
+  if (!seg.icon) return keycap(seg.key);
+  return h(
+    "kbd",
+    {
+      class: "hud-key hud-key--icon",
+      "aria-label": seg.icon === "ccw" ? "counter-clockwise" : "clockwise",
+    },
+    icon(ICONS[seg.icon])
+  );
 }
 
 /** Restart a CSS entrance animation by re-adding `className` (forces one style flush; call rarely). */

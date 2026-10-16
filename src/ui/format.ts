@@ -1,7 +1,6 @@
 /** Pure text helpers for the HUD (no DOM): numbers, units, result lines and the share link. */
 import type {
   CrashReason,
-  LandingGrade,
   LandingResult,
   LevelDef,
   SpinAxis,
@@ -14,6 +13,16 @@ const INTEGER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 /** 12340 → "12,340". */
 export function formatScore(points: number): string {
   return INTEGER.format(Math.round(points));
+}
+
+/** Best score for display: "12,340", or "—" while there is none. */
+export function formatBest(score: number | undefined): string {
+  return score !== undefined && score > 0 ? formatScore(score) : "—";
+}
+
+/** 1 → "Stunt 01". */
+export function stuntLabel(stuntNumber: number): string {
+  return `Stunt ${String(stuntNumber).padStart(2, "0")}`;
 }
 
 export function speedUnit(units: Units): string {
@@ -51,12 +60,6 @@ export function formatSeconds(s: number): string {
 export function formatMultiplier(m: number): string {
   return `×${Number.isInteger(m) ? m.toFixed(0) : m.toFixed(1)}`;
 }
-
-export const GRADE_LABEL: Record<LandingGrade, string> = {
-  perfect: "PERFECT",
-  great: "GREAT",
-  good: "GOOD",
-};
 
 export type ResultKind = "landed" | "short" | "wrecked";
 

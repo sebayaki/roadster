@@ -26,21 +26,10 @@ import { DEG, clamp } from "@/core/math";
 import { getLevel, LEVEL_ORDER, nextLevel } from "@/levels";
 import { Input } from "@/input/input";
 import { Hud, type PopupKind } from "@/ui/hud";
+import { lineupStartX } from "@/ui/run-view";
 import { runHarness, type HarnessContext, type View } from "./harness";
 
-type Screen =
-  | "menu"
-  | "ready"
-  | "run"
-  | "air"
-  | "result"
-  | "crash"
-  | "short"
-  | "pause"
-  | "popup"
-  | "ramp";
-
-const SCREENS: Screen[] = [
+const SCREENS = [
   "ramp",
   "menu",
   "ready",
@@ -51,7 +40,8 @@ const SCREENS: Screen[] = [
   "short",
   "pause",
   "popup",
-];
+] as const;
+type Screen = (typeof SCREENS)[number];
 
 declare global {
   interface Window {
@@ -114,13 +104,6 @@ function level(): LevelDef {
   return getLevel(levelId);
 }
 
-function lineupStart(l: LevelDef): number {
-  let x = Number.POSITIVE_INFINITY;
-  for (const o of l.obstacles)
-    for (const [px] of o.polygon) x = Math.min(x, px);
-  return Number.isFinite(x) ? x : 0;
-}
-
 /** Fake physics snapshot for the current screen at time t (seconds). */
 function fakeCar(t: number): void {
   const l = level();
@@ -160,7 +143,7 @@ function fakeCar(t: number): void {
   car.throttle = 1;
   car.gas = screen === "pause" ? 0.62 : 1;
   car.position.x = kick
-    ? lineupStart(l) - 38 + ((t * 6) % 30)
+    ? lineupStartX(l) - 38 + ((t * 6) % 30)
     : -60 + ((t * 8) % 40);
   car.position.y = CAR.comHeight;
   car.velocity.x = car.speed;

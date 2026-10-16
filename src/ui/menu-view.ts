@@ -4,15 +4,14 @@ import {
   buttonKey,
   cheatSheet,
   type ControlScheme,
-  type HintSegment,
 } from "./controls-info";
-import { h, icon, keycap, replayClass } from "./dom";
-import { formatScore } from "./format";
+import { h, icon, keycap, replayClass, segmentNode } from "./dom";
+import { formatBest, stuntLabel } from "./format";
 import { ART_CURL, ART_LINEUP, ICONS } from "./icons";
 import authorAvatar from "./assets/sebayaki.png";
 import type { Toggles } from "./toggles";
 
-/** Phone-portrait menu layout (matches the compact menu rules in hud.css). */
+/** Phone-portrait menu layout (matches the phone-portrait rules in hud.css). */
 const COMPACT_MENU_QUERY = "(max-width: 640px) and (orientation: portrait)";
 const REPO_URL = "https://github.com/sebayaki/roadster";
 const AUTHOR_URL = "https://x.com/0xsebayaki";
@@ -21,21 +20,6 @@ const ART: Partial<Record<LevelId, string>> = {
   backflip: ART_CURL,
   kickflip: ART_LINEUP,
 };
-
-/** Render a hint / cheat-sheet segment: plain text or a keycap (touch spin keys draw the glyph). */
-export function segmentNode(seg: HintSegment): Node {
-  if (typeof seg === "string") return document.createTextNode(seg);
-  if (seg.icon) {
-    const cap = keycap("", "hud-key hud-key--icon");
-    cap.setAttribute(
-      "aria-label",
-      seg.icon === "ccw" ? "counter-clockwise" : "clockwise"
-    );
-    cap.append(icon(seg.icon === "ccw" ? ICONS.ccw : ICONS.cw));
-    return cap;
-  }
-  return keycap(seg.key);
-}
 
 /**
  * Title screen over the attract demo: wordmark, the two stunt cards, a
@@ -223,11 +207,7 @@ export class MenuView {
             h(
               "div",
               { class: "card-eyebrow" },
-              h(
-                "span",
-                { class: "card-index" },
-                `Stunt ${String(index + 1).padStart(2, "0")}`
-              ),
+              h("span", { class: "card-index" }, stuntLabel(index + 1)),
               h("span", { class: "card-venue" }, level.venue)
             ),
             art ? icon(art, "card-art") : null
@@ -244,7 +224,7 @@ export class MenuView {
               h(
                 "span",
                 { class: `card-best-val${score ? "" : " is-empty"}` },
-                score ? formatScore(score) : "—"
+                formatBest(score)
               )
             ),
             play

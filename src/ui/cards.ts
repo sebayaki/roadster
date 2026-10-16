@@ -3,11 +3,11 @@ import { DEG } from "@/core/math";
 import { buttonKey, type ControlScheme } from "./controls-info";
 import { h, icon, keycap, replayClass, setChildren } from "./dom";
 import {
-  GRADE_LABEL,
   SHORT_LINE,
   SHORT_TIP,
   crashReasonLine,
   crashTip,
+  formatBest,
   formatLength,
   formatMultiplier,
   formatScore,
@@ -17,6 +17,7 @@ import {
   sharePageUrl,
   shareText,
   shareUrl,
+  stuntLabel,
   type Attitude,
 } from "./format";
 import type { PauseOptions, ResultOptions } from "./hud";
@@ -164,7 +165,7 @@ export class ResultCard {
       h(
         "div",
         { class: "rc-eyebrow" },
-        `Stunt ${String(stuntNumber).padStart(2, "0")} · ${level.title} · ${level.venue}`
+        `${stuntLabel(stuntNumber)} · ${level.title} · ${level.venue}`
       ),
       h(
         "div",
@@ -180,7 +181,11 @@ export class ResultCard {
           ? h(
               "div",
               { class: `rc-grade is-${landing.grade}` },
-              h("span", { class: "rc-grade-name" }, GRADE_LABEL[landing.grade]),
+              h(
+                "span",
+                { class: "rc-grade-name" },
+                GRADE_WORD[landing.grade].toUpperCase()
+              ),
               h(
                 "span",
                 { class: "rc-grade-mult" },
@@ -226,11 +231,7 @@ export class ResultCard {
           "div",
           { class: "rc-best" },
           h("span", { class: "hud-label" }, "Best"),
-          h(
-            "span",
-            { class: "rc-best-val" },
-            opts.best > 0 ? formatScore(opts.best) : "—"
-          )
+          h("span", { class: "rc-best-val" }, formatBest(opts.best))
         )
       ),
       h("div", { class: "rc-actions" }, retry, next, menu, share)
