@@ -6,7 +6,6 @@ import {
   KEY_PREVENT_DEFAULT,
   PAD,
   STICK_DEADZONE,
-  TRIGGER_DEADZONE,
   applyDeadzone,
   isInteractiveTarget,
   stickToSpin,
@@ -76,7 +75,7 @@ describe("gamepad mapping", () => {
 
   it("treats resting triggers as released", () => {
     expect(triggerToPedal(0)).toBe(0);
-    expect(triggerToPedal(TRIGGER_DEADZONE * 0.9)).toBe(0);
+    expect(triggerToPedal(0.04)).toBe(0);
     expect(triggerToPedal(1)).toBe(1);
     expect(triggerToPedal(0.5)).toBeGreaterThan(0.4);
   });
