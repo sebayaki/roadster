@@ -96,6 +96,13 @@ describe("storage", () => {
     expect(tab.loadSettings()).toEqual({ muted: false, units: "metric" });
     expect(tab.loadBestScores()).toEqual({});
 
+    for (const json of ["null", "42", '"text"', "[1000]"]) {
+      storage.data.set("rdstr.settings", json);
+      storage.data.set("rdstr.best", json);
+      expect(tab.loadSettings()).toEqual({ muted: false, units: "metric" });
+      expect(tab.loadBestScores()).toEqual({});
+    }
+
     storage.data.set("rdstr.best", "not json");
     expect(tab.submitScore("kickflip", 42)).toBe(true);
     expect(tab.loadBestScores()).toEqual({ kickflip: 42 });
