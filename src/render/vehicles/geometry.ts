@@ -1,3 +1,9 @@
+/**
+ * Geometry toolkit of the lineup vehicles: MeshBuilder collects triangles per
+ * material slot, `grid` lofts a mirrored surface from a grid of section points
+ * (`stations` picks its x positions), and `strip` wraps light bands along a
+ * plan-view outline (`outlineAtHeight`).
+ */
 import * as THREE from "three";
 import { clamp } from "@/core/math";
 
