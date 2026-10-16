@@ -126,6 +126,22 @@ function makeTexture(
   return tex;
 }
 
+/** The repeating maps of one size×size surface tile (normals: high tier only). */
+function surfaceTextures(
+  size: number,
+  color: Uint8Array,
+  rough: Uint8Array,
+  normals: Uint8Array | null,
+  aniso: number
+): SurfaceTextures {
+  const tiling = { repeat: true, aniso };
+  return {
+    map: makeTexture(color, size, size, { ...tiling, srgb: true }),
+    roughnessMap: makeTexture(rough, size, size, tiling),
+    normalMap: normals ? makeTexture(normals, size, size, tiling) : null,
+  };
+}
+
 /** Writes a single channel value (0..1) into R, G and B (A = 255). */
 function grayPixel(data: Uint8Array, i: number, v: number): void {
   const b = v <= 0 ? 0 : v >= 1 ? 255 : v * 255;
@@ -148,7 +164,8 @@ export function createAsphaltTextures(quality: Quality): SurfaceTextures {
 }
 
 function asphaltTextures(quality: Quality): SurfaceTextures {
-  const size = quality === "high" ? 1024 : 512;
+  const high = quality === "high";
+  const size = high ? 1024 : 512;
   const rand = mulberry32(0xa5f417);
   const fine = size / 4;
   const macro = fbm(size, rand, [
@@ -210,18 +227,13 @@ function asphaltTextures(quality: Quality): SurfaceTextures {
     grayPixel(rough, p, r);
   }
 
-  const aniso = quality === "high" ? 8 : 4;
-  return {
-    map: makeTexture(color, size, size, { srgb: true, repeat: true, aniso }),
-    roughnessMap: makeTexture(rough, size, size, { repeat: true, aniso }),
-    normalMap:
-      quality === "high"
-        ? makeTexture(normalsFromHeight(height, size, 2.2), size, size, {
-            repeat: true,
-            aniso,
-          })
-        : null,
-  };
+  return surfaceTextures(
+    size,
+    color,
+    rough,
+    high ? normalsFromHeight(height, size, 2.2) : null,
+    high ? 8 : 4
+  );
 }
 
 /** One concrete texture tile covers this many meters along the ride and the full 8 m width. */
@@ -242,7 +254,8 @@ export function createConcreteTextures(quality: Quality): SurfaceTextures {
 }
 
 function concreteTextures(quality: Quality): SurfaceTextures {
-  const size = quality === "high" ? 1024 : 512;
+  const high = quality === "high";
+  const size = high ? 1024 : 512;
   const pxPerM = size / CONCRETE_TILE;
   const rand = mulberry32(0xc0c2e7);
   const mottle = fbm(size, rand, [
@@ -310,18 +323,13 @@ function concreteTextures(quality: Quality): SurfaceTextures {
     }
   }
 
-  const aniso = quality === "high" ? 16 : 4;
-  return {
-    map: makeTexture(color, size, size, { srgb: true, repeat: true, aniso }),
-    roughnessMap: makeTexture(rough, size, size, { repeat: true, aniso }),
-    normalMap:
-      quality === "high"
-        ? makeTexture(normalsFromHeight(height, size, 1.6), size, size, {
-            repeat: true,
-            aniso,
-          })
-        : null,
-  };
+  return surfaceTextures(
+    size,
+    color,
+    rough,
+    high ? normalsFromHeight(height, size, 1.6) : null,
+    high ? 16 : 4
+  );
 }
 
 /**
