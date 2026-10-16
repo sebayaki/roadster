@@ -6,7 +6,10 @@
  * +y is up and +z is the car's right-hand side.
  */
 
-export type LevelId = "backflip" | "kickflip";
+/** Every level, in menu and stunt-number order. */
+export const LEVEL_IDS = ["backflip", "kickflip"] as const;
+
+export type LevelId = (typeof LEVEL_IDS)[number];
 
 /** Axis controlled by the player's spin input while airborne. */
 export type SpinAxis = "pitch" | "roll";

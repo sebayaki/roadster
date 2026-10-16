@@ -1,4 +1,4 @@
-import type { LevelDef, LevelId } from "@/core/types";
+import { LEVEL_IDS, type LevelDef, type LevelId } from "@/core/types";
 import { backflipLevel } from "./backflip";
 import { kickflipLevel } from "./kickflip";
 
@@ -7,7 +7,8 @@ export const LEVELS: Record<LevelId, LevelDef> = {
   kickflip: kickflipLevel,
 };
 
-export const LEVEL_ORDER: LevelId[] = ["backflip", "kickflip"];
+/** Menu and stunt-number order (see LEVEL_IDS). */
+export const LEVEL_ORDER: readonly LevelId[] = LEVEL_IDS;
 
 export function getLevel(id: LevelId): LevelDef {
   return LEVELS[id];

@@ -1,4 +1,4 @@
-import type { LevelId, Units } from "./types";
+import { LEVEL_IDS, type LevelId, type Units } from "./types";
 
 export interface Settings {
   muted: boolean;
@@ -8,7 +8,6 @@ export interface Settings {
 const PREFIX = "rdstr.";
 const SETTINGS_KEY = "settings";
 const BEST_KEY = "best";
-const LEVEL_IDS: readonly LevelId[] = ["backflip", "kickflip"];
 
 /**
  * Last known value of every key read or written. localStorage stays the source
