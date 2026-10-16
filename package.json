@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
+    "check": "npm run typecheck && npm run lint && npm test",
     "snap": "node scripts/snap.mjs",
     "social": "node scripts/social-assets.mjs"
   },
